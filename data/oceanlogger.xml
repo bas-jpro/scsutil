@@ -1,0 +1,26 @@
+<!-- Oceanlogger RAW stream description -->
+<!-- $Id: oceanlogger.xml 528 2009-10-01 17:15:22Z jpro $ -->
+
+<stream>	
+	<delim>,</delim>
+
+	<vars field="1"  name="-sampletime"     units="YYY DDD HH:MM:SS" type="string" />
+	<vars field="2"  name="-airtemp1"       units="celsius"          type="string" />
+	<vars field="3"  name="-humidity1"      units="%RH"              type="string" />
+	<vars field="4"  name="-par1"           units="umol/S.m2"        type="string" />
+	<vars field="5"  name="-tir1"           units="W/m2"             type="string" />
+	<vars field="6"  name="-airtemp2"       units="celsius"          type="string" />
+	<vars field="7"  name="-humidity2"      units="%RH"              type="string" />
+	<vars field="8"  name="-par2"           units="umol/S.m2"        type="string" />
+	<vars field="9"  name="-tir2"           units="W/m2"             type="string" />
+	<vars field="10" name="-baro1"          units="hPa"              type="string" />
+	<vars field="11" name="-baro2"          units="hPa"              type="string" />
+	<vars field="12" name="-tstemp"         units="celsius"          type="string" />
+	<vars field="13" name="-conductivity"   units="S/ma"             type="string" />
+	<vars field="14" name="-salinity"       units="psu"              type="string" />
+	<vars field="15" name="-sound_velocity" units="m/sa"             type="string" />
+	<vars field="16" name="-chlorophyll"    units="ug/l"             type="string" />
+	<vars field="17" name="-sampletemp"     units="celsius"          type="string" />
+	<vars field="18" name="-flowrate"       units="l/min"            type="string" />
+	<vars field="19" name="-sstemp"         units="celsius"          type="string" />
+</stream>

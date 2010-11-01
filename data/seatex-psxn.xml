@@ -1,0 +1,12 @@
+<!-- Seatex PSXN RAW stream description -->
+<!-- $Id: seatex-psxn.xml 626 2010-01-12 23:31:17Z jpro $ -->
+
+<stream>
+	<delim>,</delim>
+
+	<vars field="1" name="-pstype"   units=" " type="string" />
+	<vars field="2" name="-psfield1" units=" " type="string" />
+	<vars field="3" name="-psfield2" units=" " type="prechecksum_string" />
+	<vars field="4" name="-psfield3" units=" " type="prechecksum_string" />
+	<vars field="5" name="-psfield4" units=" " type="prechecksum_string" />
+</stream>

@@ -1,0 +1,17 @@
+<!-- Winch RAW stream description -->
+<!-- $Id: winch.xml 528 2009-10-01 17:15:22Z jpro $ -->
+
+<stream>
+	<delim>,</delim>
+		
+	<vars field="1"  name="-year"         units=" "        type="string" />
+	<vars field="2"  name="-jday"         units=" "        type="string" />
+	<vars field="3"  name="-time"         units="HH:MM:SS" type="string" />
+	<vars field="4"  name="-cable_type"   units=" "        type="string" />
+	<vars field="5"  name="-cable_out"    units=" "        type="string" />
+	<vars field="6"  name="-rate"         units=" "        type="string" />
+	<vars field="7"  name="-pktension"    units=" "        type="string" />
+	<vars field="8"  name="-back_tension" units=" "        type="string" />
+	<vars field="9"  name="-cmp_status"   units=" "        type="string" />
+	<vars field="10" name="-angle"        units="degrees"  type="string" />
+</stream> 

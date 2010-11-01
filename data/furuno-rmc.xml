@@ -1,0 +1,15 @@
+<!-- Furuno RMC RAW stream description -->
+<!-- $Id: furuno-rmc.xml 528 2009-10-01 17:15:22Z jpro $ -->
+
+<stream>
+	<delim>,</delim>
+		
+	<vars field="1"  name="-time"         units="HHMMSS"  type="string" />
+	<vars field="2"  name="-status"       units=" "       type="string" />		
+	<vars field="3"  name="-lat"          units="degrees" type="latlon" />
+	<vars field="5"  name="-lon"          units="degrees" type="latlon" />
+	<vars field="7"  name="-sog"          units="knots"   type="string" />
+	<vars field="8"  name="-track_angle"  units="degrees" type="string" />
+	<vars field="9"  name="-date"         units="DDMMYY"  type="string" />
+	<vars field="10" name="-magnetic_var" units="degrees" type="latlon" />
+</stream>

@@ -1,0 +1,10 @@
+<!-- EA600 RAW stream description -->
+<!-- $Id: ea600.xml 561 2009-11-21 11:50:47Z jpro $ -->
+
+<stream name="ea600">
+	<delim>,</delim>
+
+	<vars field="1" name="-depth_feet"    units="feet"    type="string" />
+	<vars field="3" name="-depth"         units="m"       type="string" />
+	<vars field="5" name="-depth_fathoms" units="Fathoms" type="string" />
+</stream>

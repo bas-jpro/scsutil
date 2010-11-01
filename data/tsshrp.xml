@@ -1,0 +1,26 @@
+<!-- TSSHRP RAW stream description -->
+<!-- $Id: tsshrp.xml 737 2010-06-17 07:37:13Z jpro $ -->
+
+<stream>
+	<!-- If no delimiter raw2compress expects to have start / end positions in string after timestamp given by spos / epos -->
+	<delim></delim>
+	
+	<!-- wmin / wmax are world min & max values, mmin / mmax are measured min & max values -->
+
+	 <!-- According to the manual, hacc is from 0 to 9.81m/s^2 in units of 3.83 cm/s^2. However for 0 - FF (hex) to be 0 - 9.81 units need to be 3.847 -->
+	<vars field="1" name="-hacc"  units="cm/s^2" spos="1" epos="2" base="16" wmin="0" wmax="981" mmin="0" mmax="255" type="number" />
+	
+	<!-- vacc is 0 to FFFF (hex) from -20.48 to 20.47 m/s^2 units of 0.0625 cm/s^2, but similarly units is actually 0.06248 cms/s^2 -->
+	<vars field="2" name="-vacc"  units="cm/s^2" spos="3" epos="6" base="16" wmin="-2048" wmax="2047" mmin="0" mmax="65535" type="number" />
+
+	<!-- heave is -99 to +99m -->
+	<vars field="3" name="-heave" units="cm" spos="8" epos="12" base="10" type="number" />
+
+	<vars field="4" name="-status" units="" spos="13" epos="13" type="string" />
+
+	<!-- roll is -90 deg to 90 deg +ve is port side up -->
+	<vars field="5" name="-roll"  units="hndths deg" spos="14" epos="18" base="10" type="number" />
+
+	<!-- pitch is -90 deg to 90 deg +ve is bow up -->
+	<vars field="6" name="-pitch" units="hndths deg" spos="20" epos="24" base="10" type="number" />
+</stream> 

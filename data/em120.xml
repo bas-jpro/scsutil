@@ -1,0 +1,8 @@
+<!-- EM120 RAW stream description -->
+<!-- $Id: em120.xml 528 2009-10-01 17:15:22Z jpro $ -->
+
+<stream name="em120">
+	<delim>,</delim>
+
+	<vars field="1" name="-depth" units="m" type="string" />
+</stream>

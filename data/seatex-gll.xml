@@ -1,0 +1,11 @@
+<!-- Seatex GLL RAW stream description -->
+<!-- $Id: seatex-gll.xml 561 2009-11-21 11:50:47Z jpro $ -->
+
+<stream>
+	<delim>,</delim>
+
+	<vars field="1" name="-lat"    units="degrees"   type="latlon" />
+	<vars field="3" name="-lon"    units="degrees"   type="latlon" />
+	<vars field="5" name="-time"   units="HHMMSS.SS" type="string" />
+	<vars field="6" name="-status" units=" "         type="prechecksum_string" />
+</stream>

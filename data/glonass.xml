@@ -1,0 +1,21 @@
+<!-- GLONASS RAW stream description -->
+<!-- $Id: glonass.xml 528 2009-10-01 17:15:22Z jpro $ -->
+
+<stream>
+	<delim>,</delim>
+
+	<vars field="2"  name="-gq"       units=" "         type="string" />
+	<vars field="3"  name="-svc"      units=" "         type="string" />
+	<vars field="4"  name="-time"	  units="HHMMSS.SS" type="string" />
+	<vars field="5"  name="-lat"      units="degrees"   type="latlon" />
+	<vars field="7"  name="-lon"      units="degrees"   type="latlon" />
+	<vars field="9"  name="-altitude" units="m"         type="string" />
+	<vars field="11" name="-cog"      units="degrees"   type="string" />
+	<vars field="12" name="-sog"      units="knots"     type="string" />
+	<vars field="13" name="-vvel"     units="m/s"       type="string" />
+	<vars field="14" name="-pdop"     units=" "         type="string" />
+	<vars field="15" name="-hdop"     units=" "         type="string" />
+	<vars field="16" name="-vdop"     units=" "         type="string" />
+	<vars field="17" name="-tdop"     units=" "         type="string" />
+	<vars field="18" name="-version"  units=" "         type="prechecksum_string" />
+</stream>

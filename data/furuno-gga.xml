@@ -1,0 +1,17 @@
+<!-- Furuno GGA RAW stream description -->
+<!-- $Id: furuno-gga.xml 528 2009-10-01 17:15:22Z jpro $ -->
+
+<stream>
+	<delim>,</delim>
+
+	<vars field="1"  name="-time"       units="HHMMSS"  type="string" />
+	<vars field="2"  name="-lat"        units="degrees" type="latlon" />
+	<vars field="4"  name="-lon"        units="degrees" type="latlon" />
+	<vars field="6"  name="-gq"         units=" "       type="string" />
+	<vars field="7"  name="-svc"        units=" "       type="string" />
+	<vars field="8"  name="-hdop"       units=" "       type="string" />
+	<vars field="9"  name="-msl"        units="m"       type="string" />
+	<vars field="11" name="-geo_height" units="m"       type="string" />
+	<vars field="13" name="-dage"       units="s"       type="string" />
+	<vars field="14" name="-dbase"      units=" "       type="string" />
+</stream>

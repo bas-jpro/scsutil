@@ -1,0 +1,11 @@
+<!-- Seatex ZDA RAW stream description -->
+<!-- $Id: seatex-zda.xml 528 2009-10-01 17:15:22Z jpro $ -->
+
+<stream>
+	<delim>,</delim>
+
+	<vars field="1"  name="-time"         units="HHMMSS,SS" type="string" />
+	<vars field="2"  name="-day"          units=" "         type="string" />		
+	<vars field="3"  name="-month"        units=" "         type="string" />
+	<vars field="4"  name="-year"         units=" "         type="string" />
+</stream>

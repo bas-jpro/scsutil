@@ -1,0 +1,10 @@
+<!-- SeaSPY RAW stream description -->
+<!-- $Id: seaspy.xml 528 2009-10-01 17:15:22Z jpro $ -->
+
+<stream>
+	<delim>,</delim>
+
+	<vars field="1"  name="-magnetic_field"  units="nT" type="string" />
+	<vars field="2"  name="-signal_strength" units=" "  type="string" />
+	<vars field="3"  name="-deoth"           units="m"  type="string" />
+</stream>

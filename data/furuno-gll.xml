@@ -1,0 +1,11 @@
+<!-- Furuno GLL RAW stream description -->
+<!-- $Id: furuno-gll.xml 528 2009-10-01 17:15:22Z jpro $ -->
+
+<stream>
+	<delim>,</delim>
+
+	<vars field="1"  name="-lat"    units="degrees" type="latlon" />
+	<vars field="3"  name="-lon"    units="degrees" type="latlon" />
+	<vars field="5"  name="-time"   units="HHMMSS"  type="string" />
+	<vars field="6"  name="-status" units=" "       type="string" />
+</stream>

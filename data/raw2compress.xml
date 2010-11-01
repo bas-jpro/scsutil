@@ -1,0 +1,42 @@
+<!-- Configuration File for raw2compress -->
+<!-- $Id: raw2compress.xml 562 2009-11-21 12:40:51Z jpro $ -->
+<!-- -->
+<!-- 16/09/2009 JPRO. Initial Configuration. -->
+<!-- 01/10/2009 JPRO. Split into separate files for SCSRaw -->
+
+<config>
+	<rawdir>/data/cruise/jcr/current/scs/Raw</rawdir>
+	<compressdir>/data/cruise/jcr/current/scs/Compress</compressdir>
+	<lockdir>/data/cruise/jcr/current/scs/locks</lockdir>
+	<datadir>/packages/scs/current/data</datadir>
+	<psupdate>60</psupdate> <!-- interval (s) to update ps output -->
+
+	<!-- SCSNUM is old SCS v3 variable number for TPL files -->
+	<stream name="anemometer"  scsnum="70"  rawdesc="anemometer.xml"  raw="anemometer"   delim="," /> 
+	<stream name="ashtech"     scsnum="17"  rawdesc="ashtech.xml"     raw="ashtec"       delim="," />
+	<stream name="dopplerlog"  scsnum="77"  rawdesc="dopplerlog.xml"  raw="dopplerlog"   delim="," />
+	<stream name="ea600"       scsnum="73"  rawdesc="ea600.xml"       raw="ea600"        delim="," />
+	<stream name="em120"       scsnum="113" rawdesc="em120.xml"       raw="em120"        delim="," />
+	<stream name="emlog-vhw"   scsnum="65"  rawdesc="emlog-vhw.xml"   raw="emlog-vhw"    delim="," />
+	<stream name="emlog-vlw"   scsnum="67"  rawdesc="emlog-vlw.xml"   raw="emlog-vlw"    delim="," />
+	<stream name="furuno-gga"  scsnum="28"  rawdesc="furuno-gga.xml"  raw="furuno-gga"   delim="," />
+	<stream name="furuno-gll"  scsnum="60"  rawdesc="furuno-gll.xml"  raw="furuno-gll"   delim="," />
+	<stream name="furuno-rmc"  scsnum="51"  rawdesc="furuno-rmc.xml"  raw="furuno-rmc"   delim="," />
+	<stream name="furuno-vtg"  scsnum="39"  rawdesc="furuno-vtg.xml"  raw="furuno-vtg"   delim="," />
+	<stream name="furuno-zda"  scsnum="44"  rawdesc="furuno-zda.xml"  raw="furuno-zda"   delim="," />
+	<stream name="glonass"     scsnum="2"   rawdesc="glonass.xml"     raw="glonass"      delim="," />
+	<stream name="gyro"        scsnum="146" rawdesc="gyro.xml"        raw="gyro"         delim="," />
+	<stream name="netmonitor"  scsnum="158" rawdesc="netmonitor.xml"  raw="netmonitor"   delim="," />
+	<stream name="oceanlogger" scsnum="126"	rawdesc="oceanlogger.xml" raw="oceanlogger"  delim="," />
+	<stream name="seaspy"      scsnum="148" rawdesc="seaspy.xml"      raw="seaspy"       delim="," />
+	<stream name="seatex-gga"  scsnum="80"  rawdesc="seatex-gga.xml"  raw="seatex-gga"   delim="," />
+	<stream name="seatex-gll"  scsnum="95"  rawdesc="seatex-gll.xml"  raw="seatex-gll"   delim="," />
+	<stream name="seatex-hdt"  scsnum="80"  rawdesc="seatex-hdt.xml"  raw="seatex-hdt"   delim="," />
+	<stream name="seatex-psxn" scsnum="107" rawdesc="seatex-psxn.xml" raw="seatex-psxn"  delim="," />
+	<stream name="seatex-vtg"  scsnum="102" rawdesc="seatex-vtg.xml"  raw="seatex-vtg"   delim="," />
+	<stream name="seatex-zda"  scsnum="90"  rawdesc="seatex-zda.xml"  raw="seatex-zda"   delim="," />
+	<stream name="tsshrp"      scsnum="152" rawdesc="tsshrp.xml"      raw="tsshrp"       delim="," />
+	<stream name="winch"       scsnum="115" rawdesc="winch.xml"       raw="winch"        delim="," />
+	<stream name="truewind"    scsnum="170" rawdesc="truewind.xml"    raw="truewind-dir" delim="," />
+</config>
+
