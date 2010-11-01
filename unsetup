@@ -1,0 +1,7 @@
+# unsetup script for SCS package
+# JPRO 25/11/2009
+#
+setenv PATH `/nerc/bin/env_clean -env PATH -del /packages/scs/current/bin`
+
+echo "SCS has been unsetup"
+
