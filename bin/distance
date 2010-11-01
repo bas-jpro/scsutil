@@ -1,0 +1,40 @@
+#!/packages/perl/current/bin/perl -w # -*-Perl-*-
+#
+# Calculate distance between 2 lat/lon coords
+#
+# Usage distance lat0 lon0 lat1 lon1
+#
+# $Id$
+#
+
+use strict;
+
+use lib '/packages/scs/current/lib';
+use Math::Trig qw(asin acos deg2rad pi);
+
+my $USAGE = "distance lat0 lon0 lat1 lon0";
+
+die "usage: $USAGE\n" if (scalar(@ARGV) != 4);
+
+print "Distance: " . _distance_m(@ARGV) . "m\n";
+
+exit(0);
+
+# From http://williams.best.vwh.net/avform.htm
+# Can't get Math::Trig great_distance to work
+sub _distance_m {
+	my ($lat0, $lon0, $lat1, $lon1) = @_;
+
+    # From /usr/share/misc/units.dat
+	# These values are the 1996 values given by the International
+	# Earth Rotation Service (IERS) whose reference documents can be found at
+	# http://maia.usno.navy.mil/
+	my $EARTH_RADIUS = 6378136.49; # meters
+
+	# Convert to Radians, W positive
+	my ($lat0r, $lon0r) = (deg2rad($lat0), deg2rad(-1 * $lon0));
+	my ($lat1r, $lon1r) = (deg2rad($lat1), deg2rad(-1 * $lon1));
+
+	return ($EARTH_RADIUS * acos(sin($lat0r)*sin($lat1r)+cos($lat0r)*cos($lat1r)*cos($lon0r-$lon1r)));
+#	return 2*asin(sqrt((sin(($lat0r-$lat1r)/2))^2 + cos($lat0r)*cos($lat1r)*(sin(($lon0r-$lon1r)/2))^2));
+}

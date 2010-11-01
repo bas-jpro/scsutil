@@ -1,0 +1,2177 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 71 280 540 514
+%%Pages: 0
+%%Creator: (BLT 2.4 Stripchart)
+%%CreationDate: (Thu Jan  8 14:22:59 2004)
+%%Title: (out.ps)
+%%DocumentData: Clean7Bit
+%%Orientation: Portrait
+%%DocumentNeededResources: font Helvetica Courier
+%%EndComments
+
+% including file "/packages/tcl/8.4a1/lib/blt2.4/bltGraph.pro"
+
+%
+% PostScript prolog file of the BLT graph widget.
+%
+% Copyright 1989-1992 Regents of the University of California.
+% Permission to use, copy, modify, and distribute this
+% software and its documentation for any purpose and without
+% fee is hereby granted, provided that the above copyright
+% notice appear in all copies.  The University of California
+% makes no representations about the suitability of this
+% software for any purpose.  It is provided "as is" without
+% express or implied warranty.
+%
+% Copyright 1991-1997 Bell Labs Innovations for Lucent Technologies.
+%
+% Permission to use, copy, modify, and distribute this software and its
+% documentation for any purpose and without fee is hereby granted, provided
+% that the above copyright notice appear in all copies and that both that the
+% copyright notice and warranty disclaimer appear in supporting documentation,
+% and that the names of Lucent Technologies any of their entities not be used
+% in advertising or publicity pertaining to distribution of the software
+% without specific, written prior permission.
+%
+% Lucent Technologies disclaims all warranties with regard to this software,
+% including all implied warranties of merchantability and fitness.  In no event
+% shall Lucent Technologies be liable for any special, indirect or
+% consequential damages or any damages whatsoever resulting from loss of use,
+% data or profits, whether in an action of contract, negligence or other
+% tortuous action, arising out of or in connection with the use or performance
+% of this software.
+%
+
+200 dict begin
+
+/BaseRatio 1.3467736870885982 def	% Ratio triangle base / symbol size
+/BgColorProc 0 def			% Background color routine (symbols)
+/DrawSymbolProc 0 def			% Routine to draw symbol outline/fill
+/StippleProc 0 def			% Stipple routine (bar segments)
+/DashesProc 0 def			% Dashes routine (line segments)
+ 
+% Define the array ISOLatin1Encoding (which specifies how characters are 
+% encoded for ISO-8859-1 fonts), if it isn't already present (Postscript 
+% level 2 is supposed to define it, but level 1 doesn't). 
+ 
+systemdict /ISOLatin1Encoding known not { 
+  /ISOLatin1Encoding [ 
+    /space /space /space /space /space /space /space /space 
+    /space /space /space /space /space /space /space /space 
+    /space /space /space /space /space /space /space /space 
+    /space /space /space /space /space /space /space /space 
+    /space /exclam /quotedbl /numbersign /dollar /percent /ampersand 
+    /quoteright 
+    /parenleft /parenright /asterisk /plus /comma /minus /period /slash 
+    /zero /one /two /three /four /five /six /seven 
+    /eight /nine /colon /semicolon /less /equal /greater /question 
+    /at /A /B /C /D /E /F /G 
+    /H /I /J /K /L /M /N /O 
+    /P /Q /R /S /T /U /V /W 
+    /X /Y /Z /bracketleft /backslash /bracketright /asciicircum /underscore 
+    /quoteleft /a /b /c /d /e /f /g 
+    /h /i /j /k /l /m /n /o 
+    /p /q /r /s /t /u /v /w 
+    /x /y /z /braceleft /bar /braceright /asciitilde /space 
+    /space /space /space /space /space /space /space /space 
+    /space /space /space /space /space /space /space /space 
+    /dotlessi /grave /acute /circumflex /tilde /macron /breve /dotaccent 
+    /dieresis /space /ring /cedilla /space /hungarumlaut /ogonek /caron 
+    /space /exclamdown /cent /sterling /currency /yen /brokenbar /section 
+    /dieresis /copyright /ordfeminine /guillemotleft /logicalnot /hyphen 
+    /registered /macron 
+    /degree /plusminus /twosuperior /threesuperior /acute /mu /paragraph 
+    /periodcentered 
+    /cedillar /onesuperior /ordmasculine /guillemotright /onequarter 
+    /onehalf /threequarters /questiondown 
+    /Agrave /Aacute /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla 
+    /Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex 
+    /Idieresis 
+    /Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply 
+    /Oslash /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn 
+    /germandbls 
+    /agrave /aacute /acircumflex /atilde /adieresis /aring /ae /ccedilla 
+    /egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex 
+    /idieresis 
+    /eth /ntilde /ograve /oacute /ocircumflex /otilde /odieresis /divide 
+    /oslash /ugrave /uacute /ucircumflex /udieresis /yacute /thorn 
+    /ydieresis 
+  ] def 
+} if 
+
+% font ISOEncode font 
+% This procedure changes the encoding of a font from the default 
+% Postscript encoding to ISOLatin1.  It's typically invoked just 
+% before invoking "setfont".  The body of this procedure comes from 
+% Section 5.6.1 of the Postscript book. 
+
+/ISOEncode { 
+  dup length dict
+  begin 
+    {1 index /FID ne {def} {pop pop} ifelse} forall 
+    /Encoding ISOLatin1Encoding def 
+    currentdict 
+  end 
+
+  % I'm not sure why it's necessary to use "definefont" on this new 
+  % font, but it seems to be important; just use the name "Temporary" 
+  % for the font. 
+
+  /Temporary exch definefont 
+} bind def 
+
+/Stroke {
+  gsave
+    stroke
+  grestore
+} def
+
+/Fill {
+  gsave
+    fill
+  grestore
+} def
+
+/SetFont { 	
+  % Stack: pointSize fontName
+  findfont exch scalefont ISOEncode setfont
+} def
+
+/Box {
+  % Stack: x y width height
+  newpath
+  exch 4 2 roll moveto
+  dup 0 rlineto
+  exch 0 exch rlineto
+  neg 0 rlineto
+  closepath
+} def
+
+/SetFgColor {
+  % Stack: red green blue
+  CL 0 eq { 
+    pop pop pop 0 0 0 
+  } if
+  setrgbcolor
+  CL 1 eq { 
+    currentgray setgray 
+  } if
+} def
+
+/SetBgColor {
+  % Stack: red green blue
+  CL 0 eq { 
+    pop pop pop 1 1 1 
+  } if
+  setrgbcolor
+  CL 1 eq { 
+    currentgray setgray 
+  } if
+} def
+
+% The next two definitions are taken from "$tk_library/prolog.ps"
+
+% desiredSize EvenPixels closestSize
+%
+% The procedure below is used for stippling.  Given the optimal size
+% of a dot in a stipple pattern in the current user coordinate system,
+% compute the closest size that is an exact multiple of the device's
+% pixel size.  This allows stipple patterns to be displayed without
+% aliasing effects.
+
+/EvenPixels {
+  % Compute exact number of device pixels per stipple dot.
+  dup 0 matrix currentmatrix dtransform
+  dup mul exch dup mul add sqrt
+
+  % Round to an integer, make sure the number is at least 1, and compute
+  % user coord distance corresponding to this.
+  dup round dup 1 lt {pop 1} if
+  exch div mul
+} bind def
+
+% width height string filled StippleFill --
+%
+% Given a path and other graphics information already set up, this
+% procedure will fill the current path in a stippled fashion.  "String"
+% contains a proper image description of the stipple pattern and
+% "width" and "height" give its dimensions.  If "filled" is true then
+% it means that the area to be stippled is gotten by filling the
+% current path (e.g. the interior of a polygon); if it's false, the
+% area is gotten by stroking the current path (e.g. a wide line).
+% Each stipple dot is assumed to be about one unit across in the
+% current user coordinate system.
+
+% width height string StippleFill --
+%
+% Given a path already set up and a clipping region generated from
+% it, this procedure will fill the clipping region with a stipple
+% pattern.  "String" contains a proper image description of the
+% stipple pattern and "width" and "height" give its dimensions.  Each
+% stipple dot is assumed to be about one unit across in the current
+% user coordinate system.  This procedure trashes the graphics state.
+
+/StippleFill {
+    % The following code is needed to work around a NeWSprint bug.
+
+    /tmpstip 1 index def
+
+    % Change the scaling so that one user unit in user coordinates
+    % corresponds to the size of one stipple dot.
+    1 EvenPixels dup scale
+
+    % Compute the bounding box occupied by the path (which is now
+    % the clipping region), and round the lower coordinates down
+    % to the nearest starting point for the stipple pattern.  Be
+    % careful about negative numbers, since the rounding works
+    % differently on them.
+
+    pathbbox
+    4 2 roll
+    5 index div dup 0 lt {1 sub} if cvi 5 index mul 4 1 roll
+    6 index div dup 0 lt {1 sub} if cvi 6 index mul 3 2 roll
+
+    % Stack now: width height string y1 y2 x1 x2
+    % Below is a doubly-nested for loop to iterate across this area
+    % in units of the stipple pattern size, going up columns then
+    % across rows, blasting out a stipple-pattern-sized rectangle at
+    % each position
+
+    6 index exch {
+	2 index 5 index 3 index {
+	    % Stack now: width height string y1 y2 x y
+
+	    gsave
+	    1 index exch translate
+	    5 index 5 index true matrix tmpstip imagemask
+	    grestore
+	} for
+	pop
+    } for
+    pop pop pop pop pop
+} bind def
+
+
+/LS {	% Stack: x1 y1 x2 y2
+  newpath 4 2 roll moveto lineto stroke
+} def
+
+/EndText {
+  %Stack :
+  grestore
+} def
+
+/BeginText {
+  %Stack :  w h theta centerX centerY
+  gsave
+    % Translate the origin to the center of bounding box and rotate
+    translate neg rotate
+    % Translate back to the origin of the text region
+    -0.5 mul exch -0.5 mul exch translate
+} def
+
+/DrawAdjText {
+  %Stack : str strWidth x y
+  moveto				% Go to the text position
+  exch dup dup 4 2 roll
+
+  % Adjust character widths to get desired overall string width
+  % adjust X = (desired width - real width)/#chars
+
+  stringwidth pop sub exch
+  length div
+  0 3 -1 roll
+
+  % Flip back the scale so that the string is not drawn in reverse
+
+  gsave
+    1 -1 scale
+    ashow
+  grestore
+} def
+
+/DrawBitmap {
+  % Stack: ?bgColorProc? boolean centerX centerY width height theta imageStr
+  gsave
+    6 -2 roll translate			% Translate to center of bounding box
+    4 1 roll neg rotate			% Rotate by theta
+    
+    % Find upperleft corner of bounding box
+    
+    2 copy -.5 mul exch -.5 mul exch translate
+    2 copy scale			% Make pixel unit scale
+    newpath
+    0 0 moveto 0 1 lineto 1 1 lineto 1 0 lineto
+    closepath
+    
+    % Fill rectangle with background color
+    
+    4 -1 roll { 
+      gsave 
+	4 -1 roll exec fill 
+      grestore 
+    } if
+    
+    % Paint the image string into the unit rectangle
+    
+    2 copy true 3 -1 roll 0 0 5 -1 roll 0 0 6 array astore 5 -1 roll
+    imagemask
+  grestore
+}def
+
+% Symbols:
+
+% Skinny-cross
+/Sc {
+  % Stack: x y symbolSize
+  gsave
+    3 -2 roll translate 45 rotate
+    0 0 3 -1 roll Sp
+  grestore
+} def
+
+% Skinny-plus
+/Sp {
+  % Stack: x y symbolSize
+  gsave
+    3 -2 roll translate
+    2 idiv
+    dup 2 copy
+    newpath neg 0 moveto 0 lineto
+    DrawSymbolProc
+    newpath neg 0 exch moveto 0 exch lineto
+    DrawSymbolProc
+  grestore
+} def
+
+% Cross
+/Cr {
+  % Stack: x y symbolSize
+  gsave
+    3 -2 roll translate 45 rotate
+    0 0 3 -1 roll Pl
+  grestore
+} def
+
+% Plus
+/Pl {
+  % Stack: x y symbolSize
+  gsave
+    3 -2 roll translate
+    dup 2 idiv
+    exch 6 idiv
+
+    %
+    %          2   3		The plus/cross symbol is a
+    %				closed polygon of 12 points.
+    %      0   1   4    5	The diagram to the left
+    %           x,y		represents the positions of
+    %     11  10   7    6	the points which are computed
+    %				below.
+    %          9   8
+    %
+
+    newpath
+    2 copy exch neg exch neg moveto dup neg dup lineto
+    2 copy neg exch neg lineto 2 copy exch neg lineto
+    dup dup neg lineto 2 copy neg lineto 2 copy lineto
+    dup dup lineto 2 copy exch lineto 2 copy neg exch lineto
+    dup dup neg exch lineto exch neg exch lineto
+    closepath
+    DrawSymbolProc
+  grestore
+} def
+
+% Circle
+/Ci {
+  % Stack: x y symbolSize
+  3 copy pop
+  moveto newpath
+  2 div 0 360 arc
+  closepath DrawSymbolProc
+} def
+
+% Square
+/Sq {
+  % Stack: x y symbolSize
+  dup dup 2 div dup
+  6 -1 roll exch sub exch
+  5 -1 roll exch sub 4 -2 roll Box
+  DrawSymbolProc
+} def
+
+% Line
+/Li {
+  % Stack: x y symbolSize
+  3 1 roll exch 3 -1 roll 2 div 3 copy
+  newpath
+  sub exch moveto add exch lineto
+  stroke
+} def
+
+% Diamond
+/Di {
+  % Stack: x y symbolSize
+  gsave
+    3 1 roll translate 45 rotate 0 0 3 -1 roll Sq
+  grestore
+} def
+    
+% Triangle
+/Tr {
+  % Stack: x y symbolSize
+  gsave
+    3 -2 roll translate
+    BaseRatio mul 0.5 mul		% Calculate 1/2 base
+    dup 0 exch 30 cos mul		% h1 = height above center point
+    neg					% b2 0 -h1
+    newpath moveto			% point 1;  b2
+    dup 30 sin 30 cos div mul		% h2 = height below center point
+    2 copy lineto			% point 2;  b2 h2
+    exch neg exch lineto		% 
+    closepath
+    DrawSymbolProc
+  grestore
+} def
+
+% Arrow
+/Ar {
+  % Stack: x y symbolSize
+  gsave
+    3 -2 roll translate
+    BaseRatio mul 0.5 mul		% Calculate 1/2 base
+    dup 0 exch 30 cos mul		% h1 = height above center point
+					% b2 0 h1
+    newpath moveto			% point 1;  b2
+    dup 30 sin 30 cos div mul		% h2 = height below center point
+    neg					% -h2 b2
+    2 copy lineto			% point 2;  b2 h2
+    exch neg exch lineto		% 
+    closepath
+    DrawSymbolProc
+  grestore
+} def
+
+% Bitmap
+/Bm {
+  % Stack: x y symbolSize
+  gsave
+    3 1 roll translate pop DrawSymbolProc
+  grestore
+} def
+    
+%%BeginSetup
+gsave					% Save the graphics state
+
+% Default line/text style parameters
+
+1 setlinewidth				% width
+1 setlinejoin				% join
+0 setlinecap				% cap
+[] 0 setdash				% dashes
+
+/CL 0 def				% Set color level mode
+0 0 0 setrgbcolor			% color
+
+% Transform coordinate system to use X11 coordinates
+
+% 1. Flip y-axis over by reversing the scale,
+% 2. Translate the origin to the other side of the page,
+%    making the origin the upper left corner
+0.959646 -0.959055 scale
+0 -825 translate
+
+% User defined page layout
+
+% Set color level
+/CL 2 def
+
+% Set origin
+75 290 translate
+
+
+% Setting graph scale factor
+ 0.305 0.305 scale
+
+%%EndSetup
+
+13 /Helvetica SetFont
+1 1 1 SetBgColor
+43 32 1449 724 Box Fill
+
+gsave clip
+
+0 setlinejoin
+0 setlinecap
+0.639216 0.639216 0.639216 SetFgColor
+1 setlinewidth
+[  1] 0 setdash
+53 34 53 753 LS
+148 34 148 753 LS
+243 34 243 753 LS
+338 34 338 753 LS
+433 34 433 753 LS
+529 34 529 753 LS
+624 34 624 753 LS
+719 34 719 753 LS
+814 34 814 753 LS
+909 34 909 753 LS
+1005 34 1005 753 LS
+1100 34 1100 753 LS
+1195 34 1195 753 LS
+1290 34 1290 753 LS
+1385 34 1385 753 LS
+1481 34 1481 753 LS
+45 502 1489 502 LS
+45 668 1489 668 LS
+45 171 1489 171 LS
+45 337 1489 337 LS
+
+% Element "line0"
+
+0 setlinejoin
+0 setlinecap
+0.317647 0.317647 0.984314 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+/DashesProc {} def
+45 126 46 125 LS
+46 125 48 122 LS
+48 122 50 122 LS
+50 122 52 122 LS
+52 122 54 118 LS
+54 118 56 115 LS
+56 115 58 115 LS
+58 115 60 112 LS
+60 112 62 108 LS
+62 108 64 105 LS
+64 105 66 105 LS
+66 105 68 105 LS
+68 105 70 105 LS
+70 105 72 102 LS
+72 102 74 98 LS
+74 98 76 98 LS
+76 98 78 95 LS
+78 95 80 92 LS
+80 92 82 92 LS
+82 92 84 88 LS
+84 88 86 85 LS
+86 85 88 85 LS
+88 85 89 88 LS
+89 88 91 92 LS
+91 92 93 98 LS
+93 98 95 98 LS
+95 98 97 102 LS
+97 102 99 98 LS
+99 98 101 95 LS
+101 95 103 92 LS
+103 92 105 88 LS
+105 88 107 92 LS
+107 92 109 95 LS
+109 95 111 92 LS
+111 92 113 88 LS
+113 88 115 85 LS
+115 85 117 82 LS
+117 82 119 82 LS
+119 82 121 85 LS
+121 85 123 85 LS
+123 85 125 82 LS
+125 82 127 82 LS
+127 82 129 78 LS
+129 78 131 78 LS
+131 78 133 78 LS
+133 78 135 78 LS
+135 78 137 82 LS
+137 82 139 78 LS
+139 78 141 78 LS
+141 78 143 78 LS
+143 78 145 75 LS
+145 75 147 78 LS
+147 78 149 78 LS
+149 78 151 75 LS
+151 75 153 72 LS
+153 72 155 72 LS
+155 72 157 69 LS
+157 69 159 65 LS
+159 65 161 59 LS
+161 59 163 65 LS
+163 65 165 72 LS
+165 72 167 72 LS
+167 72 169 78 LS
+169 78 171 78 LS
+171 78 173 78 LS
+173 78 175 78 LS
+175 78 177 78 LS
+177 78 179 78 LS
+179 78 181 78 LS
+181 78 183 78 LS
+183 78 185 78 LS
+185 78 187 75 LS
+187 75 189 75 LS
+189 75 191 72 LS
+191 72 193 72 LS
+193 72 195 69 LS
+195 69 197 65 LS
+197 65 199 62 LS
+199 62 201 59 LS
+201 59 203 55 LS
+203 55 205 55 LS
+205 55 207 52 LS
+207 52 208 55 LS
+208 55 210 65 LS
+210 65 212 69 LS
+212 69 214 75 LS
+214 75 216 78 LS
+216 78 218 78 LS
+218 78 220 75 LS
+220 75 222 69 LS
+222 69 224 69 LS
+224 69 226 69 LS
+226 69 228 72 LS
+228 72 230 69 LS
+230 69 232 69 LS
+232 69 234 65 LS
+234 65 236 65 LS
+236 65 238 69 LS
+238 69 240 65 LS
+240 65 242 65 LS
+242 65 244 65 LS
+244 65 246 65 LS
+246 65 248 69 LS
+248 69 250 75 LS
+250 75 252 75 LS
+252 75 254 72 LS
+254 72 256 69 LS
+256 69 258 69 LS
+258 69 260 65 LS
+260 65 262 62 LS
+262 62 264 59 LS
+264 59 266 55 LS
+266 55 268 52 LS
+268 52 270 49 LS
+270 49 272 49 LS
+272 49 274 52 LS
+274 52 276 55 LS
+276 55 278 62 LS
+278 62 280 62 LS
+280 62 282 59 LS
+282 59 284 52 LS
+284 52 286 49 LS
+286 49 288 42 LS
+288 42 290 45 LS
+290 45 292 49 LS
+292 49 294 52 LS
+294 52 296 52 LS
+296 52 298 55 LS
+298 55 300 59 LS
+300 59 302 62 LS
+302 62 304 59 LS
+304 59 306 59 LS
+306 59 308 59 LS
+308 59 310 59 LS
+310 59 312 62 LS
+312 62 314 62 LS
+314 62 316 69 LS
+316 69 318 72 LS
+318 72 320 72 LS
+320 72 322 75 LS
+322 75 324 78 LS
+324 78 326 82 LS
+326 82 327 85 LS
+327 85 329 88 LS
+329 88 331 92 LS
+331 92 333 92 LS
+333 92 335 95 LS
+335 95 337 95 LS
+337 95 339 95 LS
+339 95 341 98 LS
+341 98 343 102 LS
+343 102 345 108 LS
+345 108 347 108 LS
+347 108 349 115 LS
+349 115 351 112 LS
+351 112 353 115 LS
+353 115 355 115 LS
+355 115 357 115 LS
+357 115 359 115 LS
+359 115 361 115 LS
+361 115 363 115 LS
+363 115 365 115 LS
+365 115 367 115 LS
+367 115 369 112 LS
+369 112 371 112 LS
+371 112 373 112 LS
+373 112 375 112 LS
+375 112 377 108 LS
+377 108 379 112 LS
+379 112 381 115 LS
+381 115 383 112 LS
+383 112 385 115 LS
+385 115 387 115 LS
+387 115 389 118 LS
+389 118 391 115 LS
+391 115 393 115 LS
+393 115 395 115 LS
+395 115 397 112 LS
+397 112 399 115 LS
+399 115 401 112 LS
+401 112 403 112 LS
+403 112 405 112 LS
+405 112 407 112 LS
+407 112 409 112 LS
+409 112 411 112 LS
+411 112 413 112 LS
+413 112 415 108 LS
+415 108 417 108 LS
+417 108 419 108 LS
+419 108 421 108 LS
+421 108 423 108 LS
+423 108 425 108 LS
+425 108 427 108 LS
+427 108 429 105 LS
+429 105 431 108 LS
+431 108 433 105 LS
+433 105 435 105 LS
+435 105 437 105 LS
+437 105 439 105 LS
+439 105 441 102 LS
+441 102 443 102 LS
+443 102 445 102 LS
+445 102 446 102 LS
+446 102 448 102 LS
+448 102 450 95 LS
+450 95 452 92 LS
+452 92 454 88 LS
+454 88 456 85 LS
+456 85 458 82 LS
+458 82 460 78 LS
+460 78 462 78 LS
+462 78 464 78 LS
+464 78 466 78 LS
+466 78 468 75 LS
+468 75 470 75 LS
+470 75 472 75 LS
+472 75 474 72 LS
+474 72 476 69 LS
+476 69 478 65 LS
+478 65 480 62 LS
+480 62 482 65 LS
+482 65 484 69 LS
+484 69 486 72 LS
+486 72 488 75 LS
+488 75 490 75 LS
+490 75 492 75 LS
+492 75 494 75 LS
+494 75 496 75 LS
+496 75 498 72 LS
+498 72 500 72 LS
+500 72 502 69 LS
+502 69 504 69 LS
+504 69 506 69 LS
+506 69 508 69 LS
+508 69 510 69 LS
+510 69 512 72 LS
+512 72 514 75 LS
+514 75 516 75 LS
+516 75 518 78 LS
+518 78 520 78 LS
+520 78 522 78 LS
+522 78 524 78 LS
+524 78 526 78 LS
+526 78 528 82 LS
+528 82 530 85 LS
+530 85 532 85 LS
+532 85 534 85 LS
+534 85 536 88 LS
+536 88 538 88 LS
+538 88 540 92 LS
+540 92 542 92 LS
+542 92 544 92 LS
+544 92 546 88 LS
+546 88 548 88 LS
+548 88 550 85 LS
+550 85 552 85 LS
+552 85 554 85 LS
+554 85 556 82 LS
+556 82 558 78 LS
+558 78 560 78 LS
+560 78 562 75 LS
+562 75 564 72 LS
+564 72 565 69 LS
+565 69 567 69 LS
+567 69 569 65 LS
+569 65 571 65 LS
+571 65 573 62 LS
+573 62 575 59 LS
+575 59 577 59 LS
+577 59 579 59 LS
+579 59 581 59 LS
+581 59 583 59 LS
+583 59 585 59 LS
+585 59 587 59 LS
+587 59 589 59 LS
+589 59 591 59 LS
+591 59 593 59 LS
+593 59 595 59 LS
+595 59 597 59 LS
+597 59 599 59 LS
+599 59 601 59 LS
+601 59 603 59 LS
+603 59 605 62 LS
+605 62 607 62 LS
+607 62 609 65 LS
+609 65 611 65 LS
+611 65 613 62 LS
+613 62 615 59 LS
+615 59 617 59 LS
+617 59 619 55 LS
+619 55 621 59 LS
+621 59 623 62 LS
+623 62 625 65 LS
+625 65 627 62 LS
+627 62 629 65 LS
+629 65 631 69 LS
+631 69 633 69 LS
+633 69 635 65 LS
+635 65 637 65 LS
+637 65 639 65 LS
+639 65 641 69 LS
+641 69 643 72 LS
+643 72 645 72 LS
+645 72 647 72 LS
+647 72 649 75 LS
+649 75 651 72 LS
+651 72 653 72 LS
+653 72 655 72 LS
+655 72 657 72 LS
+657 72 659 69 LS
+659 69 661 65 LS
+661 65 663 65 LS
+663 65 665 65 LS
+665 65 667 62 LS
+667 62 669 62 LS
+669 62 671 59 LS
+671 59 673 62 LS
+673 62 675 59 LS
+675 59 677 59 LS
+677 59 679 55 LS
+679 55 681 55 LS
+681 55 683 59 LS
+683 59 684 62 LS
+684 62 686 62 LS
+686 62 688 62 LS
+688 62 690 65 LS
+690 65 692 65 LS
+692 65 694 65 LS
+694 65 696 69 LS
+696 69 698 69 LS
+698 69 700 69 LS
+700 69 702 69 LS
+702 69 704 69 LS
+704 69 706 69 LS
+706 69 708 69 LS
+708 69 710 69 LS
+710 69 712 69 LS
+712 69 714 72 LS
+714 72 716 72 LS
+716 72 718 75 LS
+718 75 720 75 LS
+720 75 722 78 LS
+722 78 724 78 LS
+724 78 726 82 LS
+726 82 728 85 LS
+728 85 730 85 LS
+730 85 732 88 LS
+732 88 734 85 LS
+734 85 736 88 LS
+736 88 738 88 LS
+738 88 740 88 LS
+740 88 742 88 LS
+742 88 744 88 LS
+744 88 746 82 LS
+746 82 748 78 LS
+748 78 750 78 LS
+750 78 752 78 LS
+752 78 754 82 LS
+754 82 756 78 LS
+756 78 758 78 LS
+758 78 760 82 LS
+760 82 762 85 LS
+762 85 764 85 LS
+764 85 766 88 LS
+766 88 768 85 LS
+768 85 770 88 LS
+770 88 772 88 LS
+772 88 774 88 LS
+774 88 776 88 LS
+776 88 778 95 LS
+778 95 780 102 LS
+780 102 782 108 LS
+782 108 784 112 LS
+784 112 786 115 LS
+786 115 788 115 LS
+788 115 790 118 LS
+790 118 792 118 LS
+792 118 794 122 LS
+794 122 796 118 LS
+796 118 798 122 LS
+798 122 800 122 LS
+800 122 802 125 LS
+802 125 803 122 LS
+803 122 805 122 LS
+805 122 807 118 LS
+807 118 809 122 LS
+809 122 811 122 LS
+811 122 813 122 LS
+813 122 815 122 LS
+815 122 817 128 LS
+817 128 819 132 LS
+819 132 821 138 LS
+821 138 823 138 LS
+823 138 825 141 LS
+825 141 827 145 LS
+827 145 829 148 LS
+829 148 831 148 LS
+831 148 833 151 LS
+833 151 835 151 LS
+835 151 837 151 LS
+837 151 839 155 LS
+839 155 841 155 LS
+841 155 843 155 LS
+843 155 845 158 LS
+845 158 847 161 LS
+847 161 849 161 LS
+849 161 851 161 LS
+851 161 853 161 LS
+853 161 855 161 LS
+855 161 857 161 LS
+857 161 859 161 LS
+859 161 861 165 LS
+861 165 863 165 LS
+863 165 865 168 LS
+865 168 867 165 LS
+867 165 869 161 LS
+869 161 871 161 LS
+871 161 873 161 LS
+873 161 875 165 LS
+875 165 877 161 LS
+877 161 879 161 LS
+879 161 881 161 LS
+881 161 883 161 LS
+883 161 885 158 LS
+885 158 887 161 LS
+887 161 889 165 LS
+889 165 891 168 LS
+891 168 893 165 LS
+893 165 895 161 LS
+895 161 897 161 LS
+897 161 899 161 LS
+899 161 901 165 LS
+901 165 903 165 LS
+903 165 905 161 LS
+905 161 907 165 LS
+907 165 909 165 LS
+909 165 911 171 LS
+911 171 913 175 LS
+913 175 915 175 LS
+915 175 917 178 LS
+917 178 919 175 LS
+919 175 921 178 LS
+921 178 922 175 LS
+922 175 924 175 LS
+924 175 926 175 LS
+926 175 928 175 LS
+928 175 930 175 LS
+930 175 932 175 LS
+932 175 934 171 LS
+934 171 936 175 LS
+936 175 938 175 LS
+938 175 940 178 LS
+940 178 942 181 LS
+942 181 944 181 LS
+944 181 946 185 LS
+946 185 948 188 LS
+948 188 950 188 LS
+950 188 952 191 LS
+952 191 954 195 LS
+954 195 956 195 LS
+956 195 958 195 LS
+958 195 960 198 LS
+960 198 962 198 LS
+962 198 964 201 LS
+964 201 966 201 LS
+966 201 968 204 LS
+968 204 970 201 LS
+970 201 972 198 LS
+972 198 974 198 LS
+974 198 976 201 LS
+976 201 978 204 LS
+978 204 980 208 LS
+980 208 982 208 LS
+982 208 984 204 LS
+984 204 986 208 LS
+986 208 988 208 LS
+988 208 990 208 LS
+990 208 992 211 LS
+992 211 994 211 LS
+994 211 996 211 LS
+996 211 998 214 LS
+998 214 1000 211 LS
+1000 211 1002 211 LS
+1002 211 1004 214 LS
+1004 214 1006 214 LS
+1006 214 1008 221 LS
+1008 221 1010 218 LS
+1010 218 1012 221 LS
+1012 221 1014 224 LS
+1014 224 1016 228 LS
+1016 228 1018 234 LS
+1018 234 1020 238 LS
+1020 238 1022 238 LS
+1022 238 1024 238 LS
+1024 238 1026 241 LS
+1026 241 1028 241 LS
+1028 241 1030 248 LS
+1030 248 1032 248 LS
+1032 248 1034 251 LS
+1034 251 1036 254 LS
+1036 254 1038 254 LS
+1038 254 1040 258 LS
+1040 258 1041 258 LS
+1041 258 1043 261 LS
+1043 261 1045 261 LS
+1045 261 1047 258 LS
+1047 258 1049 261 LS
+1049 261 1051 258 LS
+1051 258 1053 258 LS
+1053 258 1055 261 LS
+1055 261 1057 261 LS
+1057 261 1059 264 LS
+1059 264 1061 264 LS
+1061 264 1063 261 LS
+1063 261 1065 261 LS
+1065 261 1067 264 LS
+1067 264 1069 264 LS
+1069 264 1071 267 LS
+1071 267 1073 271 LS
+1073 271 1075 271 LS
+1075 271 1077 271 LS
+1077 271 1079 267 LS
+1079 267 1081 264 LS
+1081 264 1083 261 LS
+1083 261 1085 258 LS
+1085 258 1087 258 LS
+1087 258 1089 258 LS
+1089 258 1091 258 LS
+1091 258 1093 261 LS
+1093 261 1095 264 LS
+1095 264 1097 271 LS
+1097 271 1099 274 LS
+1099 274 1101 277 LS
+1101 277 1103 277 LS
+1103 277 1105 277 LS
+1105 277 1107 274 LS
+1107 274 1109 271 LS
+1109 271 1113 271 LS
+1113 271 1115 271 LS
+1115 271 1117 271 LS
+1117 271 1121 271 LS
+1121 271 1123 274 LS
+1123 274 1125 274 LS
+1125 274 1127 277 LS
+1127 277 1129 277 LS
+1129 277 1131 274 LS
+1131 274 1133 271 LS
+1133 271 1137 271 LS
+1137 271 1139 271 LS
+1139 271 1141 271 LS
+1141 271 1143 271 LS
+1143 271 1145 264 LS
+1145 264 1147 258 LS
+1147 258 1151 258 LS
+1151 258 1153 261 LS
+1153 261 1155 264 LS
+1155 264 1157 267 LS
+1157 267 1159 271 LS
+1159 271 1161 271 LS
+1161 271 1163 271 LS
+1163 271 1165 267 LS
+1165 267 1167 267 LS
+1167 267 1169 271 LS
+1169 271 1171 267 LS
+1171 267 1173 264 LS
+1173 264 1175 271 LS
+1175 271 1177 271 LS
+1177 271 1179 274 LS
+1179 274 1181 274 LS
+1181 274 1183 277 LS
+1183 277 1185 281 LS
+1185 281 1187 284 LS
+1187 284 1189 284 LS
+1189 284 1191 287 LS
+1191 287 1193 287 LS
+1193 287 1195 287 LS
+1195 287 1197 287 LS
+1197 287 1199 287 LS
+1199 287 1201 287 LS
+1201 287 1203 287 LS
+1203 287 1205 294 LS
+1205 294 1207 294 LS
+1207 294 1208 291 LS
+1208 291 1210 291 LS
+1210 291 1212 287 LS
+1212 287 1214 287 LS
+1214 287 1216 291 LS
+1216 291 1218 294 LS
+1218 294 1220 294 LS
+1220 294 1222 297 LS
+1222 297 1224 301 LS
+1224 301 1226 301 LS
+1226 301 1228 304 LS
+1228 304 1230 304 LS
+1230 304 1232 301 LS
+1232 301 1234 297 LS
+1234 297 1236 301 LS
+1236 301 1238 301 LS
+1238 301 1240 301 LS
+1240 301 1242 297 LS
+1242 297 1244 294 LS
+1244 294 1246 291 LS
+1246 291 1248 294 LS
+1248 294 1250 297 LS
+1250 297 1252 301 LS
+1252 301 1254 301 LS
+1254 301 1256 304 LS
+1256 304 1258 301 LS
+1258 301 1260 297 LS
+1260 297 1262 294 LS
+1262 294 1264 294 LS
+1264 294 1266 294 LS
+1266 294 1268 294 LS
+1268 294 1270 294 LS
+1270 294 1272 297 LS
+1272 297 1274 297 LS
+1274 297 1276 297 LS
+1276 297 1278 297 LS
+1278 297 1280 294 LS
+1280 294 1282 291 LS
+1282 291 1284 291 LS
+1284 291 1286 291 LS
+1286 291 1288 287 LS
+1288 287 1290 287 LS
+1290 287 1292 287 LS
+1292 287 1294 287 LS
+1294 287 1296 291 LS
+1296 291 1298 287 LS
+1298 287 1300 291 LS
+1300 291 1302 287 LS
+1302 287 1304 287 LS
+1304 287 1306 287 LS
+1306 287 1308 287 LS
+1308 287 1310 287 LS
+1310 287 1312 284 LS
+1312 284 1314 287 LS
+1314 287 1316 287 LS
+1316 287 1318 287 LS
+1318 287 1320 284 LS
+1320 284 1322 284 LS
+1322 284 1324 281 LS
+1324 281 1326 281 LS
+1326 281 1327 277 LS
+1327 277 1329 274 LS
+1329 274 1331 274 LS
+1331 274 1333 271 LS
+1333 271 1335 267 LS
+1335 267 1337 271 LS
+1337 271 1339 271 LS
+1339 271 1341 271 LS
+1341 271 1343 271 LS
+1343 271 1345 271 LS
+1345 271 1347 267 LS
+1347 267 1349 267 LS
+1349 267 1351 267 LS
+1351 267 1353 267 LS
+1353 267 1355 267 LS
+1355 267 1357 264 LS
+1357 264 1359 261 LS
+1359 261 1361 258 LS
+1361 258 1363 261 LS
+1363 261 1365 264 LS
+1365 264 1367 264 LS
+1367 264 1369 264 LS
+1369 264 1371 264 LS
+1371 264 1373 264 LS
+1373 264 1375 264 LS
+1375 264 1377 264 LS
+1377 264 1379 261 LS
+1379 261 1381 261 LS
+1381 261 1383 261 LS
+1383 261 1385 258 LS
+1385 258 1387 258 LS
+1387 258 1389 258 LS
+1389 258 1391 258 LS
+1391 258 1393 258 LS
+1393 258 1395 258 LS
+1395 258 1397 254 LS
+1397 254 1399 251 LS
+1399 251 1401 248 LS
+1401 248 1403 248 LS
+1403 248 1405 248 LS
+1405 248 1407 248 LS
+1407 248 1409 248 LS
+1409 248 1411 248 LS
+1411 248 1413 244 LS
+1413 244 1415 241 LS
+1415 241 1417 238 LS
+1417 238 1419 234 LS
+1419 234 1421 234 LS
+1421 234 1423 234 LS
+1423 234 1425 234 LS
+1425 234 1427 234 LS
+1427 234 1429 234 LS
+1429 234 1431 231 LS
+1431 231 1433 228 LS
+1433 228 1435 224 LS
+1435 224 1437 221 LS
+1437 221 1439 221 LS
+1439 221 1441 214 LS
+1441 214 1443 214 LS
+1443 214 1445 218 LS
+1445 218 1446 218 LS
+1446 218 1448 218 LS
+1448 218 1450 211 LS
+1450 211 1452 218 LS
+1452 218 1454 224 LS
+1454 224 1456 224 LS
+1456 224 1458 221 LS
+1 setlinewidth
+[ ] 0 setdash
+
+/DrawSymbolProc {
+  gsave
+    0.317647 0.317647 0.984314 SetBgColor
+    Fill
+    0.317647 0.317647 0.984314 SetFgColor
+    stroke
+  grestore
+} def
+
+45 124 1 Ci
+47 121 1 Ci
+49 121 1 Ci
+51 121 1 Ci
+53 118 1 Ci
+55 114 1 Ci
+57 114 1 Ci
+59 111 1 Ci
+61 108 1 Ci
+63 105 1 Ci
+65 105 1 Ci
+67 105 1 Ci
+69 105 1 Ci
+71 101 1 Ci
+73 98 1 Ci
+75 98 1 Ci
+77 95 1 Ci
+79 91 1 Ci
+81 91 1 Ci
+83 88 1 Ci
+85 85 1 Ci
+87 85 1 Ci
+89 88 1 Ci
+91 91 1 Ci
+93 98 1 Ci
+95 98 1 Ci
+97 101 1 Ci
+99 98 1 Ci
+101 95 1 Ci
+103 91 1 Ci
+105 88 1 Ci
+107 91 1 Ci
+109 95 1 Ci
+111 91 1 Ci
+113 88 1 Ci
+115 85 1 Ci
+117 81 1 Ci
+119 81 1 Ci
+121 85 1 Ci
+123 85 1 Ci
+125 81 1 Ci
+127 81 1 Ci
+129 78 1 Ci
+131 78 1 Ci
+133 78 1 Ci
+135 78 1 Ci
+137 81 1 Ci
+139 78 1 Ci
+141 78 1 Ci
+143 78 1 Ci
+145 75 1 Ci
+147 78 1 Ci
+148 78 1 Ci
+150 75 1 Ci
+152 71 1 Ci
+154 71 1 Ci
+156 68 1 Ci
+158 65 1 Ci
+160 58 1 Ci
+162 65 1 Ci
+164 71 1 Ci
+166 71 1 Ci
+168 78 1 Ci
+170 78 1 Ci
+172 78 1 Ci
+174 78 1 Ci
+176 78 1 Ci
+178 78 1 Ci
+180 78 1 Ci
+182 78 1 Ci
+184 78 1 Ci
+186 75 1 Ci
+188 75 1 Ci
+190 71 1 Ci
+192 71 1 Ci
+194 68 1 Ci
+196 65 1 Ci
+198 61 1 Ci
+200 58 1 Ci
+202 55 1 Ci
+204 55 1 Ci
+206 51 1 Ci
+208 55 1 Ci
+210 65 1 Ci
+212 68 1 Ci
+214 75 1 Ci
+216 78 1 Ci
+218 78 1 Ci
+220 75 1 Ci
+222 68 1 Ci
+224 68 1 Ci
+226 68 1 Ci
+228 71 1 Ci
+230 68 1 Ci
+232 68 1 Ci
+234 65 1 Ci
+236 65 1 Ci
+238 68 1 Ci
+240 65 1 Ci
+242 65 1 Ci
+244 65 1 Ci
+246 65 1 Ci
+248 68 1 Ci
+250 75 1 Ci
+252 75 1 Ci
+254 71 1 Ci
+256 68 1 Ci
+258 68 1 Ci
+260 65 1 Ci
+262 61 1 Ci
+264 58 1 Ci
+266 55 1 Ci
+267 51 1 Ci
+269 48 1 Ci
+271 48 1 Ci
+273 51 1 Ci
+275 55 1 Ci
+277 61 1 Ci
+279 61 1 Ci
+281 58 1 Ci
+283 51 1 Ci
+285 48 1 Ci
+287 42 1 Ci
+289 45 1 Ci
+291 48 1 Ci
+293 51 1 Ci
+295 51 1 Ci
+297 55 1 Ci
+299 58 1 Ci
+301 61 1 Ci
+303 58 1 Ci
+305 58 1 Ci
+307 58 1 Ci
+309 58 1 Ci
+311 61 1 Ci
+313 61 1 Ci
+315 68 1 Ci
+317 71 1 Ci
+319 71 1 Ci
+321 75 1 Ci
+323 78 1 Ci
+325 81 1 Ci
+327 85 1 Ci
+329 88 1 Ci
+331 91 1 Ci
+333 91 1 Ci
+335 95 1 Ci
+337 95 1 Ci
+339 95 1 Ci
+341 98 1 Ci
+343 101 1 Ci
+345 108 1 Ci
+347 108 1 Ci
+349 114 1 Ci
+351 111 1 Ci
+353 114 1 Ci
+355 114 1 Ci
+357 114 1 Ci
+359 114 1 Ci
+361 114 1 Ci
+363 114 1 Ci
+365 114 1 Ci
+367 114 1 Ci
+369 111 1 Ci
+371 111 1 Ci
+373 111 1 Ci
+375 111 1 Ci
+377 108 1 Ci
+379 111 1 Ci
+381 114 1 Ci
+383 111 1 Ci
+385 114 1 Ci
+386 114 1 Ci
+388 118 1 Ci
+390 114 1 Ci
+392 114 1 Ci
+394 114 1 Ci
+396 111 1 Ci
+398 114 1 Ci
+400 111 1 Ci
+402 111 1 Ci
+404 111 1 Ci
+406 111 1 Ci
+408 111 1 Ci
+410 111 1 Ci
+412 111 1 Ci
+414 108 1 Ci
+416 108 1 Ci
+418 108 1 Ci
+420 108 1 Ci
+422 108 1 Ci
+424 108 1 Ci
+426 108 1 Ci
+428 105 1 Ci
+430 108 1 Ci
+432 105 1 Ci
+434 105 1 Ci
+436 105 1 Ci
+438 105 1 Ci
+440 101 1 Ci
+442 101 1 Ci
+444 101 1 Ci
+446 101 1 Ci
+448 101 1 Ci
+450 95 1 Ci
+452 91 1 Ci
+454 88 1 Ci
+456 85 1 Ci
+458 81 1 Ci
+460 78 1 Ci
+462 78 1 Ci
+464 78 1 Ci
+466 78 1 Ci
+468 75 1 Ci
+470 75 1 Ci
+472 75 1 Ci
+474 71 1 Ci
+476 68 1 Ci
+478 65 1 Ci
+480 61 1 Ci
+482 65 1 Ci
+484 68 1 Ci
+486 71 1 Ci
+488 75 1 Ci
+490 75 1 Ci
+492 75 1 Ci
+494 75 1 Ci
+496 75 1 Ci
+498 71 1 Ci
+500 71 1 Ci
+502 68 1 Ci
+504 68 1 Ci
+505 68 1 Ci
+507 68 1 Ci
+509 68 1 Ci
+511 71 1 Ci
+513 75 1 Ci
+515 75 1 Ci
+517 78 1 Ci
+519 78 1 Ci
+521 78 1 Ci
+523 78 1 Ci
+525 78 1 Ci
+527 81 1 Ci
+529 85 1 Ci
+531 85 1 Ci
+533 85 1 Ci
+535 88 1 Ci
+537 88 1 Ci
+539 91 1 Ci
+541 91 1 Ci
+543 91 1 Ci
+545 88 1 Ci
+547 88 1 Ci
+549 85 1 Ci
+551 85 1 Ci
+553 85 1 Ci
+555 81 1 Ci
+557 78 1 Ci
+559 78 1 Ci
+561 75 1 Ci
+563 71 1 Ci
+565 68 1 Ci
+567 68 1 Ci
+569 65 1 Ci
+571 65 1 Ci
+573 61 1 Ci
+575 58 1 Ci
+577 58 1 Ci
+579 58 1 Ci
+581 58 1 Ci
+583 58 1 Ci
+585 58 1 Ci
+587 58 1 Ci
+589 58 1 Ci
+591 58 1 Ci
+593 58 1 Ci
+595 58 1 Ci
+597 58 1 Ci
+599 58 1 Ci
+601 58 1 Ci
+603 58 1 Ci
+605 61 1 Ci
+607 61 1 Ci
+609 65 1 Ci
+611 65 1 Ci
+613 61 1 Ci
+615 58 1 Ci
+617 58 1 Ci
+619 55 1 Ci
+621 58 1 Ci
+623 61 1 Ci
+624 65 1 Ci
+626 61 1 Ci
+628 65 1 Ci
+630 68 1 Ci
+632 68 1 Ci
+634 65 1 Ci
+636 65 1 Ci
+638 65 1 Ci
+640 68 1 Ci
+642 71 1 Ci
+644 71 1 Ci
+646 71 1 Ci
+648 75 1 Ci
+650 71 1 Ci
+652 71 1 Ci
+654 71 1 Ci
+656 71 1 Ci
+658 68 1 Ci
+660 65 1 Ci
+662 65 1 Ci
+664 65 1 Ci
+666 61 1 Ci
+668 61 1 Ci
+670 58 1 Ci
+672 61 1 Ci
+674 58 1 Ci
+676 58 1 Ci
+678 55 1 Ci
+680 55 1 Ci
+682 58 1 Ci
+684 61 1 Ci
+686 61 1 Ci
+688 61 1 Ci
+690 65 1 Ci
+692 65 1 Ci
+694 65 1 Ci
+696 68 1 Ci
+698 68 1 Ci
+700 68 1 Ci
+702 68 1 Ci
+704 68 1 Ci
+706 68 1 Ci
+708 68 1 Ci
+710 68 1 Ci
+712 68 1 Ci
+714 71 1 Ci
+716 71 1 Ci
+718 75 1 Ci
+720 75 1 Ci
+722 78 1 Ci
+724 78 1 Ci
+726 81 1 Ci
+728 85 1 Ci
+730 85 1 Ci
+732 88 1 Ci
+734 85 1 Ci
+736 88 1 Ci
+738 88 1 Ci
+740 88 1 Ci
+742 88 1 Ci
+743 88 1 Ci
+745 81 1 Ci
+747 78 1 Ci
+749 78 1 Ci
+751 78 1 Ci
+753 81 1 Ci
+755 78 1 Ci
+757 78 1 Ci
+759 81 1 Ci
+761 85 1 Ci
+763 85 1 Ci
+765 88 1 Ci
+767 85 1 Ci
+769 88 1 Ci
+771 88 1 Ci
+773 88 1 Ci
+775 88 1 Ci
+777 95 1 Ci
+779 101 1 Ci
+781 108 1 Ci
+783 111 1 Ci
+785 114 1 Ci
+787 114 1 Ci
+789 118 1 Ci
+791 118 1 Ci
+793 121 1 Ci
+795 118 1 Ci
+797 121 1 Ci
+799 121 1 Ci
+801 124 1 Ci
+803 121 1 Ci
+805 121 1 Ci
+807 118 1 Ci
+809 121 1 Ci
+811 121 1 Ci
+813 121 1 Ci
+815 121 1 Ci
+817 128 1 Ci
+819 131 1 Ci
+821 138 1 Ci
+823 138 1 Ci
+825 141 1 Ci
+827 144 1 Ci
+829 148 1 Ci
+831 148 1 Ci
+833 151 1 Ci
+835 151 1 Ci
+837 151 1 Ci
+839 154 1 Ci
+841 154 1 Ci
+843 154 1 Ci
+845 158 1 Ci
+847 161 1 Ci
+849 161 1 Ci
+851 161 1 Ci
+853 161 1 Ci
+855 161 1 Ci
+857 161 1 Ci
+859 161 1 Ci
+861 164 1 Ci
+862 164 1 Ci
+864 168 1 Ci
+866 164 1 Ci
+868 161 1 Ci
+870 161 1 Ci
+872 161 1 Ci
+874 164 1 Ci
+876 161 1 Ci
+878 161 1 Ci
+880 161 1 Ci
+882 161 1 Ci
+884 158 1 Ci
+886 161 1 Ci
+888 164 1 Ci
+890 168 1 Ci
+892 164 1 Ci
+894 161 1 Ci
+896 161 1 Ci
+898 161 1 Ci
+900 164 1 Ci
+902 164 1 Ci
+904 161 1 Ci
+906 164 1 Ci
+908 164 1 Ci
+910 171 1 Ci
+912 174 1 Ci
+914 174 1 Ci
+916 177 1 Ci
+918 174 1 Ci
+920 177 1 Ci
+922 174 1 Ci
+924 174 1 Ci
+926 174 1 Ci
+928 174 1 Ci
+930 174 1 Ci
+932 174 1 Ci
+934 171 1 Ci
+936 174 1 Ci
+938 174 1 Ci
+940 177 1 Ci
+942 181 1 Ci
+944 181 1 Ci
+946 184 1 Ci
+948 187 1 Ci
+950 187 1 Ci
+952 191 1 Ci
+954 194 1 Ci
+956 194 1 Ci
+958 194 1 Ci
+960 197 1 Ci
+962 197 1 Ci
+964 201 1 Ci
+966 201 1 Ci
+968 204 1 Ci
+970 201 1 Ci
+972 197 1 Ci
+974 197 1 Ci
+976 201 1 Ci
+978 204 1 Ci
+980 207 1 Ci
+981 207 1 Ci
+983 204 1 Ci
+985 207 1 Ci
+987 207 1 Ci
+989 207 1 Ci
+991 211 1 Ci
+993 211 1 Ci
+995 211 1 Ci
+997 214 1 Ci
+999 211 1 Ci
+1001 211 1 Ci
+1003 214 1 Ci
+1005 214 1 Ci
+1007 221 1 Ci
+1009 217 1 Ci
+1011 221 1 Ci
+1013 224 1 Ci
+1015 227 1 Ci
+1017 234 1 Ci
+1019 237 1 Ci
+1021 237 1 Ci
+1023 237 1 Ci
+1025 240 1 Ci
+1027 240 1 Ci
+1029 247 1 Ci
+1031 247 1 Ci
+1033 250 1 Ci
+1035 254 1 Ci
+1037 254 1 Ci
+1039 257 1 Ci
+1041 257 1 Ci
+1043 260 1 Ci
+1045 260 1 Ci
+1047 257 1 Ci
+1049 260 1 Ci
+1051 257 1 Ci
+1053 257 1 Ci
+1055 260 1 Ci
+1057 260 1 Ci
+1059 264 1 Ci
+1061 264 1 Ci
+1063 260 1 Ci
+1065 260 1 Ci
+1067 264 1 Ci
+1069 264 1 Ci
+1071 267 1 Ci
+1073 270 1 Ci
+1075 270 1 Ci
+1077 270 1 Ci
+1079 267 1 Ci
+1081 264 1 Ci
+1083 260 1 Ci
+1085 257 1 Ci
+1087 257 1 Ci
+1089 257 1 Ci
+1091 257 1 Ci
+1093 260 1 Ci
+1095 264 1 Ci
+1097 270 1 Ci
+1099 274 1 Ci
+1100 277 1 Ci
+1102 277 1 Ci
+1104 277 1 Ci
+1106 274 1 Ci
+1108 270 1 Ci
+1113 270 1 Ci
+1114 270 1 Ci
+1116 270 1 Ci
+1120 270 1 Ci
+1122 274 1 Ci
+1124 274 1 Ci
+1127 277 1 Ci
+1128 277 1 Ci
+1130 274 1 Ci
+1133 270 1 Ci
+1136 270 1 Ci
+1138 270 1 Ci
+1140 270 1 Ci
+1142 270 1 Ci
+1144 264 1 Ci
+1146 257 1 Ci
+1150 257 1 Ci
+1152 260 1 Ci
+1154 264 1 Ci
+1156 267 1 Ci
+1158 270 1 Ci
+1160 270 1 Ci
+1162 270 1 Ci
+1164 267 1 Ci
+1166 267 1 Ci
+1168 270 1 Ci
+1170 267 1 Ci
+1172 264 1 Ci
+1174 270 1 Ci
+1176 270 1 Ci
+1178 274 1 Ci
+1180 274 1 Ci
+1182 277 1 Ci
+1184 280 1 Ci
+1186 284 1 Ci
+1188 284 1 Ci
+1190 287 1 Ci
+1192 287 1 Ci
+1194 287 1 Ci
+1196 287 1 Ci
+1198 287 1 Ci
+1200 287 1 Ci
+1202 287 1 Ci
+1204 294 1 Ci
+1206 294 1 Ci
+1208 290 1 Ci
+1210 290 1 Ci
+1212 287 1 Ci
+1214 287 1 Ci
+1216 290 1 Ci
+1218 294 1 Ci
+1220 294 1 Ci
+1222 297 1 Ci
+1224 300 1 Ci
+1226 300 1 Ci
+1228 303 1 Ci
+1230 303 1 Ci
+1232 300 1 Ci
+1234 297 1 Ci
+1236 300 1 Ci
+1238 300 1 Ci
+1240 300 1 Ci
+1242 297 1 Ci
+1244 294 1 Ci
+1246 290 1 Ci
+1248 294 1 Ci
+1250 297 1 Ci
+1252 300 1 Ci
+1254 300 1 Ci
+1256 303 1 Ci
+1258 300 1 Ci
+1260 297 1 Ci
+1262 294 1 Ci
+1264 294 1 Ci
+1266 294 1 Ci
+1267 294 1 Ci
+1269 294 1 Ci
+1271 297 1 Ci
+1273 297 1 Ci
+1275 297 1 Ci
+1277 297 1 Ci
+1279 294 1 Ci
+1281 290 1 Ci
+1283 290 1 Ci
+1285 290 1 Ci
+1287 287 1 Ci
+1289 287 1 Ci
+1291 287 1 Ci
+1293 287 1 Ci
+1295 290 1 Ci
+1297 287 1 Ci
+1299 290 1 Ci
+1301 287 1 Ci
+1303 287 1 Ci
+1305 287 1 Ci
+1307 287 1 Ci
+1309 287 1 Ci
+1311 284 1 Ci
+1313 287 1 Ci
+1315 287 1 Ci
+1317 287 1 Ci
+1319 284 1 Ci
+1321 284 1 Ci
+1323 280 1 Ci
+1325 280 1 Ci
+1327 277 1 Ci
+1329 274 1 Ci
+1331 274 1 Ci
+1333 270 1 Ci
+1335 267 1 Ci
+1337 270 1 Ci
+1339 270 1 Ci
+1341 270 1 Ci
+1343 270 1 Ci
+1345 270 1 Ci
+1347 267 1 Ci
+1349 267 1 Ci
+1351 267 1 Ci
+1353 267 1 Ci
+1355 267 1 Ci
+1357 264 1 Ci
+1359 260 1 Ci
+1361 257 1 Ci
+1363 260 1 Ci
+1365 264 1 Ci
+1367 264 1 Ci
+1369 264 1 Ci
+1371 264 1 Ci
+1373 264 1 Ci
+1375 264 1 Ci
+1377 264 1 Ci
+1379 260 1 Ci
+1381 260 1 Ci
+1383 260 1 Ci
+1385 257 1 Ci
+1386 257 1 Ci
+1388 257 1 Ci
+1390 257 1 Ci
+1392 257 1 Ci
+1394 257 1 Ci
+1396 254 1 Ci
+1398 250 1 Ci
+1400 247 1 Ci
+1402 247 1 Ci
+1404 247 1 Ci
+1406 247 1 Ci
+1408 247 1 Ci
+1410 247 1 Ci
+1412 244 1 Ci
+1414 240 1 Ci
+1416 237 1 Ci
+1418 234 1 Ci
+1420 234 1 Ci
+1422 234 1 Ci
+1424 234 1 Ci
+1426 234 1 Ci
+1428 234 1 Ci
+1430 231 1 Ci
+1432 227 1 Ci
+1434 224 1 Ci
+1436 221 1 Ci
+1438 221 1 Ci
+1440 214 1 Ci
+1442 214 1 Ci
+1444 217 1 Ci
+1446 217 1 Ci
+1448 217 1 Ci
+1450 211 1 Ci
+1452 217 1 Ci
+1454 224 1 Ci
+1456 224 1 Ci
+1458 221 1 Ci
+
+% Unset clipping
+grestore
+
+0.901961 0.901961 0.901961 SetBgColor
+0 0 1600 34 Box Fill
+
+0 34 45 719 Box Fill
+
+1489 34 111 719 Box Fill
+
+0 753 1600 47 Box Fill
+
+1 1 1 SetBgColor
+43 753 1448 2 Box Fill
+
+1489 32 2 723 Box Fill
+
+0.541176 0.541176 0.541176 SetBgColor
+newpath 43 755 moveto
+43 32 lineto
+1491 32 lineto
+1489 34 lineto
+45 34 lineto
+45 753 lineto
+43 755 lineto
+43 755  lineto closepath Fill
+0.901961 0.901961 0.901961 SetBgColor
+1496 35 99 22 Box Fill
+
+1 1 1 SetBgColor
+1496 55 99 2 Box Fill
+
+1593 35 2 22 Box Fill
+
+0.541176 0.541176 0.541176 SetBgColor
+newpath 1496 57 moveto
+1496 35 lineto
+1595 35 lineto
+1593 37 lineto
+1498 37 lineto
+1498 55 lineto
+1496 57 lineto
+1496 57  lineto closepath Fill
+0 setlinejoin
+0 setlinecap
+0.317647 0.317647 0.984314 SetFgColor
+3 setlinewidth
+[ ] 0 setdash
+1512 46 20 Li
+1 setlinewidth
+[ ] 0 setdash
+
+/DrawSymbolProc {
+  gsave
+    0.317647 0.317647 0.984314 SetBgColor
+    Fill
+    0.317647 0.317647 0.984314 SetFgColor
+    stroke
+  grestore
+} def
+
+1512 46 10 Ci
+64 12 0 1558 46 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(Ocean_temp1) 64 0 10 DrawAdjText
+EndText
+75 16 0 767 16 BeginText
+13 /Helvetica SetFont
+0 0 0 SetFgColor
+(Default Title) 75 0 13 DrawAdjText
+EndText
+26 14 0 767 790 BeginText
+12 /Helvetica SetFont
+0 0 0 SetFgColor
+(Time) 26 0 11 DrawAdjText
+EndText
+31 12 0 53 774 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(16:00) 27 2 10 DrawAdjText
+EndText
+31 12 0 148 774 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(16:04) 27 2 10 DrawAdjText
+EndText
+31 12 0 243 774 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(16:08) 27 2 10 DrawAdjText
+EndText
+31 12 0 338 774 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(16:12) 27 2 10 DrawAdjText
+EndText
+31 12 0 433 774 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(16:16) 27 2 10 DrawAdjText
+EndText
+31 12 0 529 774 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(16:20) 27 2 10 DrawAdjText
+EndText
+31 12 0 624 774 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(16:24) 27 2 10 DrawAdjText
+EndText
+31 12 0 719 774 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(16:28) 27 2 10 DrawAdjText
+EndText
+31 12 0 814 774 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(16:32) 27 2 10 DrawAdjText
+EndText
+31 12 0 909 774 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(16:36) 27 2 10 DrawAdjText
+EndText
+31 12 0 1005 774 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(16:40) 27 2 10 DrawAdjText
+EndText
+31 12 0 1100 774 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(16:44) 27 2 10 DrawAdjText
+EndText
+31 12 0 1195 774 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(16:48) 27 2 10 DrawAdjText
+EndText
+31 12 0 1290 774 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(16:52) 27 2 10 DrawAdjText
+EndText
+31 12 0 1385 774 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(16:56) 27 2 10 DrawAdjText
+EndText
+31 12 0 1481 774 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(17:00) 27 2 10 DrawAdjText
+EndText
+0 setlinejoin
+0 setlinecap
+0 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+53 758 1481 758 LS
+53 758 53 766 LS
+148 758 148 766 LS
+243 758 243 766 LS
+338 758 338 766 LS
+433 758 433 766 LS
+529 758 529 766 LS
+624 758 624 766 LS
+719 758 719 766 LS
+814 758 814 766 LS
+909 758 909 766 LS
+1005 758 1005 766 LS
+1100 758 1100 766 LS
+1195 758 1195 766 LS
+1290 758 1290 766 LS
+1385 758 1385 766 LS
+1481 758 1481 766 LS
+78 14 90 10 393 BeginText
+12 /Helvetica SetFont
+0.317647 0.317647 0.984314 SetFgColor
+(Ocean_temp1) 78 0 11 DrawAdjText
+EndText
+10 12 0 25 668 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(6) 6 2 10 DrawAdjText
+EndText
+10 12 0 25 337 BeginText
+10 /Helvetica SetFont
+0 0 0 SetFgColor
+(7) 6 2 10 DrawAdjText
+EndText
+0 setlinejoin
+0 setlinecap
+0 0 0 SetFgColor
+1 setlinewidth
+[ ] 0 setdash
+40 745 40 42 LS
+40 502 35 502 LS
+40 668 32 668 LS
+40 171 35 171 LS
+40 337 32 337 LS
+showpage
+%Trailer
+grestore
+end
+%EOF

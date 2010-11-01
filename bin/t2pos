@@ -1,0 +1,119 @@
+#!/usr/local/bin/perl -w
+# 
+# $Id$
+#
+# Arguments
+#   -s <field delimiter> -d -c <time columns> stream ...
+#
+# where ... is either a list if times or file names
+#
+# Must have a stream arg. -d is decimal pos if given, 
+# delim is whitespace by default and
+# -c is taken to be 1 if not give
+#
+
+use strict;
+use Getopt::Std;
+use Time::ParseDate qw(parsedate);
+use lib '/packages/scs/current/lib';
+use SCSUtil;
+
+my $BADTIME = "BAD TIME";
+my $TMPEXT = '$$#';
+my $decimal = 0;
+my $delim = " ";
+my @cols = (0);
+
+my %opts = ();
+getopts('s:dc:', \%opts);
+
+if (scalar(@ARGV) < 2) {
+	die "Usage: $0 [-s delim] [-c time columns] [-d] gps_stream times|files....\n";
+}
+
+my $stream = shift @ARGV;
+
+# Setup cols
+if ($opts{c}) {
+	@cols = split(",", $opts{c});
+}
+
+# Setup delimiter
+if ($opts{s}) {
+	$delim = $opts{s};
+}
+
+# Open stream
+my $scs = SCSUtil->new();
+$scs->attach($stream);
+
+my ($lat, $lon) = ($scs->get_re_var_pos('lat'), $scs->get_re_var_pos('lon'));
+
+if (!$lat || !$lon) {
+	die "Cannot find lat/lon variables in stream: $stream\n";
+}
+
+foreach my $f (@ARGV) {
+	convert_times($f);
+}
+
+0;
+
+sub convert_times {
+	my $f = shift;
+
+	# Check if time or file 
+	if (!open(FH, "< $f")) {
+		print join(" ", get_pos(conv_time($f))), "\n"; 
+
+		return;
+	}
+
+	open(FOUT, "> $f.$TMPEXT") or die "Cannot open $f.$TMPEXT for writing\n";
+	while (my $line = <FH>) {
+		chomp($line);
+		
+		print FOUT $line, $delim;
+
+		my @ts = (split($delim, $line))[@cols];
+
+		foreach my $t (@ts) {
+			print FOUT join($delim, get_pos(conv_time($t)));
+		}
+
+		print FOUT "\n";
+	}
+
+	close(FOUT);
+	close(FH);
+	
+	# Rename temp file to original name
+	unlink($f);
+	rename("$f.$TMPEXT", $f);
+}
+
+sub get_pos {
+	my $tstamp = shift;
+
+	my $rec = $scs->find_time($tstamp);
+	die "Invalid time: $tstamp\n" if !$rec;
+
+	return ($rec->{vals}->[$lat], $rec->{vals}->[$lon]);
+}
+
+sub conv_time {
+	my $t = shift;
+	
+	my $tstamp = undef;
+
+	if ($t =~ /^\d{11}$/) {
+		# RVS Time
+		$tstamp = $scs->convert_rvs_time($t);
+	} else {
+		$tstamp = parsedate($t, UK => 1);
+	}
+	
+	die "Invalid time: $t\n" unless $tstamp;
+
+	return $tstamp;
+}

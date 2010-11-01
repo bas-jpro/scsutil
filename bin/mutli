@@ -1,0 +1,120 @@
+#!/usr/local/bin/perl -w # -*-Perl-*-
+# SCS version of RVS mutli utility
+#
+# v1.0 JPR JCR 09/08/2000 Initial release
+#
+# mutli [-s stime] [-e etime] [-k stat] [-n lines] [-hrt] [-i secs] -d file
+#
+# NB. -k implemented but not very useful. -d is now mandatory
+# Man page doesn't specify but -i overrides INTERVAL (as RVS mutli)
+# -r is always rounded up - man page doesn't specify
+# Added -w option to quit when first end of stream is reached
+#
+
+use strict;
+
+use lib '/packages/scs/current/lib';
+use SCSUtil;           ;
+use SCSFmt;
+use POSIX qw(INT_MAX);
+use Getopt::Std;
+
+my $USAGE = "mutli [-s stime] [-e etime] [-k stat] [-n lines] [-hrtw] " .
+	"[-i secs] -d file";
+
+# Parse command line
+my %opts;
+die "usage: $USAGE\n" if !getopts('s:e:k:n:i:d:hrtw', \%opts) || !$opts{d};
+
+my $scs = SCSUtil->new();
+
+# Implement -s and -e and -r
+my $stime = 0;
+$stime = $scs->convert_rvs_time($opts{s}) if $opts{s};
+
+my $etime = INT_MAX;
+$etime = $scs->convert_rvs_time($opts{e}) if $opts{e};
+
+# Implement -k
+$opts{k} = $scs->check_status($opts{k}) if $opts{k};
+exit(0) if $opts{k} && $opts{k} > $scs->{GOOD};
+
+my $scsfmt = SCSFmt->new();
+
+# Check and read in file
+my $mfmt = $scsfmt->read($opts{d}, "MUTLI FILE");
+
+# Implement -i
+$opts{i} = $scsfmt->interval($mfmt) unless $opts{i} && 
+	($opts{i} =~ /[1-9][0-9]*/);
+
+# Implement -r
+if ($stime == 0) {
+	$scs->attach($mfmt->{STREAM}->[0]->{name});
+	my $rec = $scs->next_record();
+	$stime = $rec->{timestamp};
+	$scs->detach();
+}
+
+$stime = mutli_round($stime, $opts{i}) if !$opts{r};
+$etime = mutli_round($etime, $opts{i}) if !$opts{r} && $opts{e};
+
+# Now attach to each stream, check vars and set start times
+foreach my $s (@{ $mfmt->{STREAM} }) {
+	$s->{scs} = SCSUtil->new();
+	$s->{scs}->attach($s->{name});
+	
+	# Check variables
+	$s->{var_pos} = ();
+	foreach my $v (@{ $s->{VARS} }) {
+		push (@{ $s->{var_pos} }, $s->{scs}->get_vars_pos($v->[0]));
+	}
+
+	$s->{scs}->goto_time($stime-1);
+}
+
+my $tstamp = 0;
+
+# Now actually do loop
+while ($tstamp+$stime <= $etime) {
+	# Implement -t
+	my $time_print = 0;
+	$time_print = 1 if $opts{t};
+	
+	my $outstr = "";
+
+	foreach my $s (@{ $mfmt->{STREAM} }) {
+		my $rec = $s->{scs}->next_record();
+
+		if ($time_print == 0) {
+			$outstr .= $s->{scs}->time_str($rec->{timestamp});
+			$time_print = 1;
+		}
+
+		my $i = 0;
+		foreach my $v (@{ $s->{VARS} }) {
+			$outstr .= sprintf($v->[3], $rec->{vals}->[$s->{var_pos}->[$i]]);
+			$i++;
+		}
+	}
+
+	print "$outstr\n" if ($tstamp % $opts{i} == 0);
+
+	$tstamp++;
+}
+
+# Close streams
+foreach (@{ $mfmt->{STREAM} }){
+	$_->{scs}->detach();
+}
+
+exit(0);
+
+# Round $num up to be divisible by $interval
+sub mutli_round {
+	my ($num, $interval) = @_;
+
+	$num += $interval - ($num % $interval) unless ($num % $interval == 0);
+
+	return $num;
+}

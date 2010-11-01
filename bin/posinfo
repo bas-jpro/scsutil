@@ -1,0 +1,82 @@
+#!/usr/local/bin/perl -w # -*-Perl-*-
+# SCS version of RVS posinfo utility
+#
+# posinfo [-t time] [-d] stream [stream2...]
+#
+# Only works on GPS's that have lat/lon variables named like lat/lon
+#
+# $Id$
+#
+
+use strict;
+
+use lib '/packages/scs/current/lib';
+use SCSUtil;           ;
+use POSIX qw(strftime);
+use Getopt::Std;
+
+my $USAGE = "posinfo [-t time][-d] stream [stream2...]";
+
+# Parse command line
+my %opts;
+die "usage: $USAGE\n" if !getopts('t:d', \%opts) || (scalar(@ARGV) < 1);
+
+my $scs = SCSUtil->new();
+
+# Implement -t
+$opts{t} = $scs->convert_rvs_time($opts{t}) if $opts{t};
+
+foreach (@ARGV) {
+	eval { $scs->attach($_) };
+	if ($@) {
+		print "$@";
+		next;
+	}
+	
+	print "$_:\n" if scalar(@ARGV) > 1;
+
+	my ($lat_pos, $lon_pos) = ($scs->get_re_var_pos("lat"), 
+							   $scs->get_re_var_pos("lon"));
+	
+	if (!defined($lat_pos) || !defined($lon_pos)) {
+		print "No Data\n";
+		next;
+	}
+
+	# Get latest record if time not specified
+	my $rec = undef;
+	if (!$opts{t}) {
+		$rec = $scs->last_record();
+	} else {	
+		$scs->find_time($opts{t});
+		$rec = $scs->current_record();
+	}
+
+	# Make sure a record was found
+	if (!$rec) {
+		if ($opts{t}) {
+			print strftime("%y %j %T", gmtime($opts{t})) .  " No Data\n";
+		} else {
+			print "No Data\n";	
+		}
+
+		next;
+	}
+
+	print strftime("%y %j %T", gmtime($rec->{timestamp}));
+
+	# Implement -d
+	if ($opts{d}) {
+		printf("  %0.6f  %0.6f", $rec->{vals}->[$lat_pos], 
+			   $rec->{vals}->[$lon_pos]);  
+	} else {
+		print "   ", $scs->conv_deg_min($lat_pos, "N");
+		print "   ", $scs->conv_deg_min($lon_pos, "E");
+	}
+
+	print "\n";
+
+	$scs->detach();
+}
+
+exit(0);

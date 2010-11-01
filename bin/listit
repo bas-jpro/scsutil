@@ -1,0 +1,138 @@
+#!/usr/local/bin/perl -w # -*-Perl-*-
+# SCS version of RVS listit utility
+#
+# $Id$
+#
+# listit [-s stime] [-e etime] [-i interval] [-k stat]
+#        [-b stat] [-u val] [-l val] [-v varno]
+#        [-n number] [-z secs] [-hwr] stream var [var...]
+#
+# NB. Follows man page for RVS listit, not behaviour.
+# Man page suggests -k will only list data of stat, insted RVS listit
+# lists data of stat or better. Also tends to print out all records with
+# a given timestamp, RVS listit only prints first one
+#
+# Option -v is accepted but ignored for compatability
+# Option -r will use SCS Raw Files
+#
+
+use strict;
+
+use lib '/packages/scs/current/lib';
+use SCSUtil;           
+use SCSRaw;
+use POSIX qw(strftime INT_MAX);
+use Getopt::Std;
+
+# Directory containing RAW stream description files
+my $RAW_DATA_DIR = '/packages/scs/current/data';
+
+my $USAGE = "listit [-s stime][-e etime][-i interval][-k stat][-b stat]" .
+	"[-u val][-l val][-v varno][-n number][-z secs][-hwr] stream var [var ...]";
+
+# Parse command line
+my %opts;
+my $res = getopts('s:e:i:k:b:u:l:v:n:z:hwr', \%opts);
+
+die "usage: $USAGE\n" if !$res || (scalar(@ARGV) < 2);
+
+# Sleep 1 second unless z is specified
+$opts{z} = 1 unless $opts{z} && ($opts{z} =~ /^[1-9][0-9]*$/);
+
+my $scs = undef;
+if ($opts{r}) {
+	$scs = SCSRaw->new();
+	$scs->attach($ARGV[0], $RAW_DATA_DIR . '/' . $ARGV[0] . '.xml');
+} else {
+	$scs = SCSUtil->new();
+	$scs->attach($ARGV[0]);
+}
+
+# Check status values and convert to integer
+$opts{k} = $scs->check_status($opts{k}) if $opts{k};
+$opts{b} = $scs->check_status($opts{b}) if $opts{b};
+
+# Check variable names
+my @vars = $scs->get_vars_pos(@ARGV[1..$#ARGV]);
+
+# Setup start record
+if ($opts{s}) {
+	$scs->find_time($scs->convert_rvs_time($opts{s}));
+} else {
+	$scs->next_record();
+}
+
+my $etime = INT_MAX; # End of Unix EPOCH
+$etime = $scs->convert_rvs_time($opts{e}) if $opts{e};
+
+my $rec = $scs->current_record();
+
+$| = 1;
+
+# Print Header
+my $hdrstr = "\n     Time       ";
+
+foreach (@ARGV[1..$#ARGV]) {
+	my $left_pad = int((15 - length($_)) / 2);
+	
+	$hdrstr .= "  " . " " x $left_pad . $_ . " " x (15 - length($_) - 
+													$left_pad);
+}
+
+print "$hdrstr\n" unless $opts{h};
+
+my $lines = 0;
+while ($rec->{timestamp} <= $etime) {
+	# Format the time for printing
+	my $outstr = strftime("%y %j %T ", gmtime($rec->{timestamp})); 
+
+	# Format the data for printing
+	my $max = $rec->{vals}->[0];
+	foreach (@vars) {
+		$outstr .= " " if $rec->{vals}->[$_] >= 0;
+
+		$outstr .= sprintf(" %0.6e $scs->{GOOD}", $rec->{vals}->[$_]);
+
+		# Implement -u val and -l val options
+		if ($opts{u} || $opts{l}) {
+		    $max = $rec->{vals}->[$_] if $rec->{vals}->[$_] > $max;
+		}
+	}
+	# Implement -n and -h 
+	$outstr = "$hdrstr\n$outstr" if $opts{n} && !$opts{h} && 
+		($lines != 0) && !($lines % $opts{n});
+
+	$outstr .= "\n";
+
+	# Implement -u and -l
+	$outstr = "" if $opts{u} && ($max > $opts{u});
+	$outstr = "" if $opts{l} && ($max < $opts{l});
+
+	# Implement -b and -k 
+	$outstr = "" if $opts{k} && ($opts{k} != $scs->{GOOD});
+	$outstr = "" if $opts{b} && ($opts{b} < $scs->{GOOD});
+
+	# Implement -i
+	$outstr = "" if $opts{i} && ($rec->{timestamp} % $opts{i});
+
+	# Display the data, if any
+	print $outstr;
+	
+	# Only increment lines if we printed something
+	$lines++ unless $outstr eq "";
+
+	$rec = $scs->next_record();
+
+	if (!$opts{w}) {
+		while (!$rec) {
+			sleep $opts{z};
+			$rec = $scs->next_record();
+		}
+	} else {
+		last if !$rec;
+	}
+}
+
+$scs->detach();
+
+exit(0);

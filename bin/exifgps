@@ -1,0 +1,93 @@
+#!/usr/local/bin/perl -w
+#
+# Extract Time from an EXIF image and return GPS position from SCS
+#
+# $Id$
+#
+
+use strict;
+
+use Image::Info qw(image_info);
+use Date::Parse;
+use Getopt::Std;
+use File::Basename;
+use POSIX qw(strftime);
+
+use lib '/packages/scs/current/lib';
+use SCS;
+use SCS::Compress;
+
+# Parse command line
+my %opts;
+getopts("dho:s:", \%opts);
+
+if ($opts{h} || (scalar(@ARGV) == 0)) {
+	print "Usage: $0 [-d] [-h] [-o offset] [-s stream] <image> <image> ....\n";
+	print "\t-d\tdisplay posiiton in decimal degrees\n";
+	print "\t-h\tdisplay help\n";
+	print "\t-o\toffset in seconds to be applied to camera time\n";
+	print "\t-s\tgps stream\n";
+
+	exit(0);
+}
+
+# Default to Seatex unless user picked a stream
+my $stream = $opts{s} || "seatex-gga";
+
+# Default to zero seconds offset unless user entered a valid offset
+$opts{o} = 0 unless ($opts{o} && ($opts{o} =~ /-?\d+/));
+ 
+foreach my $image (@ARGV) {
+	# Get Image information
+	my $info = image_info($image);
+
+	if ($info->{error}) {
+		print "Error: " . $info->{error} . "\n";
+
+		next;
+	}
+	
+	# Extrace image time and convert to Unix Timestamp
+	# Add offset specified by user
+	my $image_time = str2time($info->{DateTimeOriginal}) + $opts{o};
+
+	# Get SCS position if possible
+	my $scs = SCS::Compress->new();
+	$scs->attach($stream);
+
+	# Check image time is within stream time
+	my $rec = $scs->next_record();
+	my $start = $rec->{timestamp} || -1;
+	
+	$rec = $scs->last_record();
+	my $end = $rec->{timestamp} || -1;
+
+	if (($image_time < $start) || ($image_time > $end)) {
+		print "$image: No position available\n";
+
+		next;
+	}
+
+	$rec = $scs->find_time($image_time);
+
+	# Find lat/lon
+	my ($lat_pos, $lon_pos) = ($scs->get_re_var_pos("lat"), $scs->get_re_var_pos("lon"));
+	
+	if (!defined($lat_pos) || !defined($lon_pos)) {
+		print "$image: No position available\n";
+
+		next;
+	}
+
+	print basename($image) . ": " . strftime("%H:%M:%S %d/%m/%Y", gmtime($image_time)) . ": ";
+
+	# Option of Decimal Degrees
+	if ($opts{d}) {
+		printf("%0.6f  %0.6f\n", $rec->{vals}->[$lat_pos], $rec->{vals}->[$lon_pos]);
+	} else {
+		print $scs->conv_deg_min($lat_pos, "N") . " " . $scs->conv_deg_min($lon_pos, "E") . "\n";
+	}
+
+}
+
+0;

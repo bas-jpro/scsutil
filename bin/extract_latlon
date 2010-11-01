@@ -1,0 +1,58 @@
+#!/packages/perl/5.8.0/bin/perl -w # -*-Perl-*-
+#
+# Extract Lat/Lon from an SCS Stream and output in GMT friendly format
+#
+# v1.0 JPRO JCR JR83 03/11/2002 Initial Release
+#
+# Arguments start_time end_time stream 
+#
+# Time in unix timestamp
+#
+
+use strict;
+use lib '/packages/scs/current/lib';
+use SCSUtil;
+
+# Variables for each stream
+my $STREAMS = {
+	'Ashtec-ADU2' => {
+		lat => 'Ashtec_Lat',
+		lon => 'Ashtec_Lon',
+	},
+	'Glonass' => {
+		lat => 'Glo_Lat',
+		lon => 'Glo_Lon',
+	},
+	'Trimble' => {
+		lat => 'Trim_Lat',
+		lon => 'Trim_Lon',
+	},
+};
+
+if (scalar(@ARGV) != 3) {
+	die "Usage: $0 <start time> <end_time> <stream>\n";
+}
+
+my ($start_time, $end_time, $stream) = @ARGV;
+
+my $scs = SCSUtil->new();
+
+$scs->attach($stream);
+
+my ($lat, $lon) = $scs->get_vars_pos($STREAMS->{$stream}->{lat}, $STREAMS->{$stream}->{lon});
+
+# Move to start time in file
+my $rec = $scs->find_time($start_time);
+
+my ($end_year, $end_dayfract) = $scs->_time_to_scs($end_time);
+
+# Loop until end time
+while ($scs->rec_time_compare($end_year, $end_dayfract) <= 0) {
+	print join(",", $rec->{vals}->[$lat], $rec->{vals}->[$lon]), "\n";
+
+	$rec = $scs->next_record_scs();
+}
+
+$scs->detach();
+
+0;

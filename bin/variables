@@ -1,0 +1,55 @@
+#!/usr/local/bin/perl -w # -*-Perl-*-
+# SCS version of RVS variables/vars utility
+#
+# v1.0 JPRO JCR 03/08/2000 Initial release
+#
+# vars/variables [-m][-u][-p path] stream [stream...]
+#
+# NB: no man page so just follows behaviour.
+# option -m to print max records is ignored.
+#
+
+use strict;
+
+use lib '/packages/scs/current/lib';
+use SCS;
+use SCS::Client;
+use Getopt::Std;
+
+my $USAGE = "variables [-m][-u][-p path] stream [stream...]";
+
+# Parse command line
+my %opts;
+my $res = getopts('mup:', \%opts);
+
+die "usage: $USAGE\n" if !$res || (scalar(@ARGV) < 1);
+
+my $scs = SCS::Client->new();
+
+$scs->change_path($opts{p}) if $opts{p};
+print_vars($scs, \%opts, @ARGV);
+
+exit(0);
+
+sub print_vars {
+	my ($scs, $opts, @streams) = @_;
+
+	foreach (@streams) {
+		eval { $scs->attach($_); };
+		if ($@) {
+			print "$@";
+			next;
+		}
+		
+		print "$_:\n" if scalar(@streams) > 1;
+
+		foreach my $v (@{ $scs->vars() }) {
+			print $v->{name};
+			print "\t$v->{units}" if $opts{u};
+
+			print "\n";
+		}
+		
+		$scs->detach();
+	}	
+}

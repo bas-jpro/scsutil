@@ -1,0 +1,22 @@
+#!/usr/local/bin/perl -w # -*-Perl-*-
+# Test for prev_record
+#
+
+use strict;
+use lib '/packages/scs/current/lib';
+use SCSUtil;
+use POSIX qw(strftime);
+
+my $scs = SCSUtil->new();
+
+$scs->attach($ARGV[0]);
+
+my $rec = $scs->last_record();
+
+while ($rec) {
+	print strftime("%y %j %T", gmtime($rec->{timestamp})), "\n";
+
+	$rec = $scs->prev_record();
+}
+
+$scs->detach();

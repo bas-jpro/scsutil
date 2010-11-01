@@ -1,0 +1,114 @@
+#!/usr/local/bin/perl -w # -*-Perl-*-
+# SCS version of RVS gaps utility
+#
+# v1.0 JPR JCR 05/08/2000 Initial release
+#
+# gaps [-s stime] [-e etime] [-g maxgp] [-ldbw] stream1 [stream2...]
+#
+# Doesn't necessarily give the same results as RVS gaps due to way
+# time is computed
+#
+
+use strict;
+
+use lib '/packages/scs/current/lib';
+use SCSUtil;           ;
+use POSIX qw(INT_MAX abs);
+use Getopt::Std;
+
+my $USAGE = "gaps [-s stime] [-e etime] [-g maxgp] [-ldbw] stream1 " .
+	"[stream2...]";
+
+# Parse command line
+my %opts;
+die "usage: $USAGE\n" if !getopts('s:e:g:ldbw', \%opts) || (scalar(@ARGV) < 1);
+
+my $scs = SCSUtil->new();
+
+# Implement -s and -e
+my $stime = 0;
+$stime = $scs->convert_rvs_time($opts{s}) if $opts{s};
+
+my $etime = INT_MAX;
+$etime = $scs->convert_rvs_time($opts{e}) if $opts{e};
+
+# Implement -g
+$opts{g} = 1 unless $opts{g} && ($opts{g} =~ /^[1-9][0-9]*$/);
+
+$| = 1;
+
+foreach (@ARGV) {
+	eval { $scs->attach($_) };
+	if ($@) {
+		print "$@";
+		next;
+	}
+	
+	print "$_\n" if scalar(@ARGV) > 1;
+
+	# Go to start time
+	$scs->goto_time($stime);
+	my $rec = $scs->current_record();
+	if (!$rec) {
+		if ($opts{w}) {
+			$scs->detach();
+			next;
+		}
+
+		while (!$rec) {
+			sleep 1;
+			$rec = $scs->next_record();
+		}
+	}
+	
+	while ($rec->{timestamp} <= $etime) {
+		my $old_tstamp = $rec->{timestamp};
+
+		$rec = $scs->next_record();
+		if (!$rec) {
+			last if $opts{w};
+			
+			while (!$rec) {
+				sleep 1;
+				$rec = $scs->next_record();
+			}
+		}
+
+		# Duplicate time detector
+		if (!$opts{d} && ($old_tstamp == $rec->{timestamp})) {
+			print "duplicate time: " . $scs->time_str($old_tstamp), "\n";
+		}
+
+		# Gap detector
+		my $diff = $rec->{timestamp} - $old_tstamp;
+		next if abs($diff) < $opts{g};
+
+		# Implement -b
+		if ($opts{b} && ($diff < 0)) {
+			next;
+		}
+
+		if ($diff < 0) {
+			print "backward time jump : ";
+		} 
+
+		if ($diff > 0) {
+			print "time gap : ";
+		}
+
+		print $scs->time_str($old_tstamp);
+		print "  to  ", $scs->time_str($rec->{timestamp});
+		
+		# Implement -l
+		if (!$opts{l}) {
+			print "\n";
+		} else {
+			print "  ($diff s)\n";
+		}
+	
+	}
+
+	$scs->detach();
+}
+
+exit(0);

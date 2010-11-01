@@ -1,0 +1,186 @@
+#!/packages/perl/current/bin/perl -w # -*-Perl-*-
+# Get first time ship passes given position
+#
+# pos2time [-s start time] [-e end time] lat lon stream 
+#
+# Only works on GPS's that have lat/lon variables named like lat/lon
+#
+# $Id$
+#
+
+use strict;
+
+use lib '/packages/scs/current/lib';
+use SCS;
+use SCS::Compress;
+use POSIX qw(strftime INT_MAX);
+use Getopt::Std;
+use Math::Trig qw(asin acos deg2rad pi);
+
+my $USAGE = "pos2time [-s start time] [-e end time] lat lon stream";
+
+# Parse command line
+my %opts;
+die "usage: $USAGE\n" if !getopts('e:s:', \%opts) || (scalar(@ARGV) != 3);
+
+my $scs = SCS::Compress->new();
+
+# Implement -s and -e
+my $stime = 0;
+$stime = $scs->convert_rvs_time($opts{s}) if $opts{s};
+
+my $etime = INT_MAX; # End of Unix EPOCH
+$etime = $scs->convert_rvs_time($opts{e}) if $opts{e};
+
+my ($lat, $lon, $stream) = @ARGV;
+$scs->attach($stream);
+
+my ($lat_pos, $lon_pos) = ($scs->get_re_var_pos("lat"), 
+						   $scs->get_re_var_pos("lon"));
+	
+if (!defined($lat_pos) || !defined($lon_pos)) {
+	print "No Data\n";
+	exit(0);
+}
+
+$scs->find_time($stime) if $stime;
+my $rec = $scs->current_record();
+if (!$rec) {
+	print "No Data\n";
+	exit(0);
+}
+
+my ($last_lat, $last_lon) = (@{ $rec->{vals} })[$lat_pos, $lon_pos];
+my ($cur_lat, $cur_lon) = ($last_lat, $last_lon);
+my $finished = 0;
+my ($min_time, $min_dist) = (undef, undef);
+
+while (!$finished && ($rec->{timestamp} <= $etime)) {
+	if (($cur_lat == $lat) && ($cur_lon == $lon)) {
+		$min_dist = 0;
+		$min_time = $rec->{timestamp};
+
+		$finished = 1;
+
+		next;
+	}
+	
+	# Only check if we have moved 
+	if (($cur_lat != $last_lat) || ($cur_lon != $last_lon)) {
+		# Find distance between ship's track and waypoint
+		my $dist = point_to_line_seg_dist({ 'x' => $lat, 'y' => $lon }, [ { 'x' => $last_lat, 'y' => $last_lon },
+																		  { 'x' => $cur_lat,  'y' => $cur_lon } ]);
+		
+		if (!$min_dist) {
+			$min_dist = $dist;
+		}
+		
+		if ($min_dist >= $dist) {
+			$min_dist = $dist;
+			$min_time = $rec->{timestamp};
+		}
+	}
+	
+	($last_lat, $last_lon) = ($cur_lat, $cur_lon);
+	$rec = $scs->next_record();
+	if (!$rec) {
+		print "No Data\n";
+		$finished = 1;
+	}
+	($cur_lat, $cur_lon) = (@{ $rec->{vals}})[$lat_pos, $lon_pos];
+}
+
+if ($min_time) {
+	my ($dist_m, $tstamp) = undef;
+
+	# Find earliest time with smallest distance (m)
+	for (my $i=-1; $i<=1; $i++) {
+		$scs->find_time($min_time + $i);
+		$rec = $scs->current_record();
+		my $d = _distance_m ($lat, $lon, $rec->{vals}->[$lat_pos], $rec->{vals}->[$lon_pos]);
+
+		if (!$dist_m) {
+			$dist_m = $d;
+			$tstamp = $min_time + $i;
+		}
+
+		if ($d < $dist_m) {
+			$dist_m = $d;
+			$tstamp = $min_time + $i;
+		}
+	}
+
+	print "Time: " . scalar(gmtime($tstamp)) . " ($tstamp), Distance: " . sprintf("%0.6f", $dist_m) . "m\n";
+}
+
+$scs->detach();
+
+exit(0);
+
+# Compute distance from point to line segment 
+# Based on http://www.topcoder.com/tc?module=Static&d1=tutorials&d2=geometry1
+# $pt is { x, y }, $line is [ {x, y}, {x, y} ]
+sub point_to_line_seg_dist {
+	my ($pt, $line) = @_;
+	
+	if (dot($line->[0], $line->[1], $pt) > 0) {
+		return distance($line->[1], $pt);
+	}
+	if (dot($line->[1], $line->[0], $pt) > 0) {
+		return distance($line->[0], $pt);
+	}
+	
+	return abs(cross($line->[0], $line->[1], $pt) / distance($line->[0], $line->[1]));
+}
+
+# Compute dot product AB . BC
+# a, b, c are all {x, y}
+sub dot {
+	my ($a, $b, $c) = @_;
+
+	my $ab = { x => $b->{x} - $a->{x}, 'y' => $b->{y} - $a->{y} };
+	my $bc = { x => $c->{x} - $b->{x}, 'y' => $c->{y} - $b->{y} };
+
+	return ($ab->{x} * $bc->{x} + $ab->{y} * $bc->{y});
+}
+
+# Compute cross product AB x AC
+# a, b, c are all {x, y}
+sub cross {
+	my ($a, $b, $c) = @_;
+
+	my $ab = { x => $b->{x} - $a->{x}, 'y' => $b->{y} - $a->{y} };
+	my $ac = { x => $c->{x} - $a->{x}, 'y' => $c->{y} - $a->{y} };
+
+	return ($ab->{x} * $ac->{y} - $ab->{y} * $ac->{x});
+}
+
+# Compute distance from A to B
+# a, b are {x, y}
+sub distance {
+	my ($a, $b) = @_;
+
+	my $dx = $a->{x} - $b->{x};
+	my $dy = $a->{y} - $b->{y};
+
+	return sqrt($dx * $dx + $dy * $dy);
+}
+
+# From http://williams.best.vwh.net/avform.htm
+# Can't get Math::Trig great_distance to work
+sub _distance_m {
+	my ($lat0, $lon0, $lat1, $lon1) = @_;
+
+    # From /usr/share/misc/units.dat
+	# These values are the 1996 values given by the International
+	# Earth Rotation Service (IERS) whose reference documents can be found at
+	# http://maia.usno.navy.mil/
+	my $EARTH_RADIUS = 6378136.49; # meters
+
+	# Convert to Radians, W positive
+	my ($lat0r, $lon0r) = (deg2rad($lat0), deg2rad(-1 * $lon0));
+	my ($lat1r, $lon1r) = (deg2rad($lat1), deg2rad(-1 * $lon1));
+
+	return ($EARTH_RADIUS * acos(sin($lat0r)*sin($lat1r)+cos($lat0r)*cos($lat1r)*cos($lon0r-$lon1r)));
+#	return 2*asin(sqrt((sin(($lat0r-$lat1r)/2))^2 + cos($lat0r)*cos($lat1r)*(sin(($lon0r-$lon1r)/2))^2));
+}

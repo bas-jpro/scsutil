@@ -1,0 +1,22 @@
+#!/bin/csh
+## ++      identity string - SCCS will update it - not you          ++ ##
+## static char sccsid[] = {"@(#)jday Version 1.2 94/02/16 13:48:36 Copyright NERC 1991"};  ##
+
+#########################################################################
+##  Copyright       Natural Environment Research Council (NERC) 1991   ##
+##                                                                     ##
+##  Reproduction and distribution of this software is restricted to    ##
+##  U.K. Research Councils, U.K. Universities, U.K. Polytechnics, U.K. ##
+##  Colleges of Further and Higher Education and bona fide purchasers  ##
+##  for their internal use only.                                       ##
+##                                                                     ##
+##  Further restrictions may apply if this software has been supplied  ##
+##  subject to a License Agreement.                                    ##
+##                                                                     ##
+##  Disclaimer                                                         ##
+##                                                                     ##
+##  NERC accepts no liability for any damage or loss which may result  ##
+##  from any errors or omissions in this software.                     ##
+#########################################################################
+
+date '+%j'

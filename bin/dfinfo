@@ -1,0 +1,100 @@
+#!/usr/local/bin/perl -w # -*-Perl-*-
+# SCS version of RVS dfinfo utility
+#
+# $Id$
+#
+# dfinfo [-h] [-f][-l][-w] [-p <path>] [<name> ...]
+#
+# NB. Follows the man page and not the behaviour of the rvs dfinfo.
+# The only discrepancy is when no names are given on the command line
+# - the rvs version prints the usage string - when the man page claims
+# it will display all the streams.
+#
+# Also adds a -h option to print the usage string.
+# Add a -r option to use Raw files instead of Compress files
+#
+
+use strict;
+
+use lib '/packages/scs/current/lib';
+use SCSUtil;
+use SCSRaw;
+use POSIX qw(strftime);
+use Getopt::Std;
+
+my $USAGE = "dfinfo [-f][-l][-w][-h][-r] [-p <path>] [<name> ...]";
+
+# Parse command line
+my %opts;
+die "usage: $USAGE\n" if (!getopts('flhwrp:', \%opts) || $opts{h});
+
+# Print both times by default
+$opts{f} = $opts{l} = 1 if (!$opts{f} && !$opts{l});
+
+my $scs = undef;
+if ($opts{r}) { 
+	$scs = SCSRaw->new();
+} else {
+	$scs = SCSUtil->new();
+}
+
+$scs->change_path($opts{p}) if $opts{p};
+
+my @streams = ();
+my @scs_streams = $scs->list_streams();
+
+if (!$opts{w}) {
+	if (scalar(@ARGV) >= 1) {
+		@streams = @ARGV;
+	} else {
+		@streams = @scs_streams;
+	}
+} else {
+	if (scalar(@ARGV) >= 1) {
+		foreach my $arg (@ARGV) {
+			foreach (@scs_streams) {
+				push(@streams, $_) if /$arg/; 
+			}
+		}
+	} else {
+		@streams = @scs_streams;
+	}
+}
+
+print_times($scs, \%opts, @streams);
+
+exit(0);
+
+sub print_times {
+	my ($scs, $opts, @streams) = @_;
+
+	foreach (@streams) {
+		eval { $scs->attach($_); };
+		if ($@) {
+			print "$@";
+			next;
+		}
+
+		print "$_:\n" if (scalar(@streams) > 1) || $opts->{w};
+
+		if ($opts->{f}) {
+			my $rec = $scs->next_record();
+
+			if ($rec->{timestamp}) {
+				print "\t", strftime("%y %j %H:%M:%S", gmtime($rec->{timestamp})), "\n";
+			} else {
+				print "No data\n";
+			}
+		}
+
+		if ($opts->{l}) {
+			my $rec = $scs->last_record();
+
+			if ($rec->{timestamp}) {
+				print "\t", strftime("%y %j %H:%M:%S", gmtime($rec->{timestamp})), "\n";
+			} else {
+				print "No data\n" if !$opts->{f};
+			}
+		}
+	}
+}

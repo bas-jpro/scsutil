@@ -1,0 +1,157 @@
+#!/packages/perl/current/bin/perl -w # -*-Perl-*-
+# SCS version of RVS limits utility
+#
+# v1.0 JPRO JCR 09/08/2000 Initial release
+# v1.1 JPRO JCR 31/10/2002 Used _time_to_scs & _time_compare
+#
+# limits [-s stime] [-e etime] [-v] [-l stat] stream var1 [var2...]
+#
+# NB. -l is implemented but doesn't make a lot of sense. (All data is GOOD)
+#
+
+use strict;
+
+use lib '/packages/scs/current/lib';
+use SCS;
+use SCS::Compress; 
+use POSIX qw(INT_MAX);
+use Getopt::Std;
+
+my $USAGE = "limits [-s stime] [-e etime] [-v] [-l stat] stream " .
+	"var1 [var2...]";
+
+# Parse command line
+my %opts;
+die "usage: $USAGE\n" if !getopts('s:e:l:v', \%opts) || (scalar(@ARGV) < 2);
+
+my $scs = SCS::Compress->new();
+
+$scs->attach($ARGV[0]);
+
+# Implement -s and -e
+my $stime = 0;
+$stime = $scs->convert_rvs_time($opts{s}) if $opts{s};
+
+my ($etime_year, $etime_dayfract) = (INT_MAX, INT_MAX);
+($etime_year, $etime_dayfract) = $scs->_time_to_scs($scs->convert_rvs_time($opts{e})) if $opts{e};
+
+# Implement -l
+$opts{l} = $scs->check_status($opts{l}) if $opts{l};
+
+my @vars = $scs->get_vars_pos(@ARGV[1..$#ARGV]);
+
+# Arrays holding min and max values and times at which they reach min/max
+my (@min, @max);
+my (@mintimes, @maxtimes);
+
+# Use first record values to seed min/max arrays
+$scs->find_time($stime);
+
+my $rec = $scs->next_record();
+$stime = $rec->{timestamp};
+
+foreach (@vars) {
+	push(@min, $rec->{vals}->[$_]);
+	push(@mintimes, $rec->{timestamp});
+
+	push(@max, $rec->{vals}->[$_]);
+	push(@maxtimes, $rec->{timestamp});
+}
+
+my $fh = $scs->{stream};
+my $str = scalar <$fh>;
+chop($str);
+my ($year, $fract_time, $jday, $dayfract, @vals) = split(",", $str);
+
+my $comp = 0;
+if ($year == $etime_year) {
+	$comp = ($fract_time <=> $etime_dayfract);
+} else {
+	if ($year < $etime_year) {
+		$comp = -1;
+	} else {
+		$comp = 1;
+	}
+}
+
+while ($comp < 0) {
+	# Implment $opts{l}
+	# next if $opts{l} && $opts{l} > $scs->{GOOD};
+
+	my $i = 0;
+	foreach (@vars) {
+		if ($vals[$_] < $min[$i]) {
+			$min[$i] = $vals[$_];
+			$mintimes[$i] = { year => $year, dayfract => $fract_time };
+		}
+			
+		if ($vals[$_] > $max[$i]) {
+			$max[$i] = $vals[$_];
+			$maxtimes[$i] = { year => $year, dayfract => $fract_time };
+		}
+	   
+		$i++;
+	}
+
+	$str = scalar <$fh>;
+	if (!$str) {
+		$comp = 1;
+		next;
+	}
+
+	chop($str);
+	
+	($year, $fract_time, $jday, $dayfract, @vals) = split(",", $str);
+
+	if ($year == $etime_year) {
+		$comp = ($fract_time <=> $etime_dayfract);
+	} else {
+		if ($year < $etime_year) {
+			$comp = -1;
+		} else {
+			$comp = 1;
+		}
+	}
+}
+
+if (!$opts{e}) {
+	$etime_year = $year;
+	$etime_dayfract = $fract_time;
+}
+
+$scs->detach();
+
+# Implement $opts{v}
+if (!$opts{v}) {
+	my $i = 0;
+	foreach (@vars) {
+		print $max[$i] . "  " . $min[$i] . "\n";
+		$i++;
+	}
+} else {
+	print "\nStream: $ARGV[0] from " . $scs->time_str($stime);
+	print " to " . $scs->time_str($scs->scs_to_time($etime_year, $etime_dayfract)) . "\n";
+	print " " x 28 . "Maximum" . " " x 22 . "Minimum\n";
+	print "Variable\n";
+
+	my $i = 0;
+	foreach (@vars) {
+		my $pad = 18 - length($ARGV[1+$i]);
+		print $ARGV[1+$i] . " " x $pad . ": ";
+		print $max[$i] . " at " . $scs->time_str($scs->scs_to_time($maxtimes[$i]->{year}, $maxtimes[$i]->{dayfract}));
+		print "  $min[$i] at " . $scs->time_str($scs->scs_to_time($mintimes[$i]->{year}, $mintimes[$i]->{dayfract})) . "\n";
+
+		$i++;
+	}
+}
+
+0;
+
+sub compare_time {
+    my ($y1, $d1, $y2, $d2) = @_;
+
+    return ($d1 <=> $d2) if ($y1 == $y2);
+
+    return -1 if $y1 < $y2;
+    return  1 if $y1 > $y2;
+}
