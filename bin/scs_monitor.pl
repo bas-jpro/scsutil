@@ -6,7 +6,7 @@
 #        -d - update delay, seconds 
 #        -a - old data age, seconds
 #
-# $Id$
+# $Id: scs_monitor.pl 519 2009-09-25 14:09:37Z jpro $
 #
 
 use strict;

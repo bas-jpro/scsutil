@@ -1,6 +1,6 @@
 # SCS Module to read RAW SCS Files
 #
-# $Id$
+# $Id: SCSRaw.pm 581 2009-12-03 11:09:59Z jpro $
 #
 
 package SCSRaw;

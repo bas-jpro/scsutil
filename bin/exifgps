@@ -2,7 +2,7 @@
 #
 # Extract Time from an EXIF image and return GPS position from SCS
 #
-# $Id$
+# $Id: exifgps 571 2009-11-25 16:59:35Z jpro $
 #
 
 use strict;

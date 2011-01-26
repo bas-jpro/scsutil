@@ -1,6 +1,6 @@
 # General SCS Module for SCS versions of RVS utilities
 #
-# $Id$
+# $Id: SCSUtil.pm 567 2009-11-24 21:52:19Z jpro $
 #
 
 package SCSUtil;

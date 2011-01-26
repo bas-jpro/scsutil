@@ -4,7 +4,7 @@
 #
 # Usage distance lat0 lon0 lat1 lon1
 #
-# $Id$
+# $Id: distance 607 2009-12-22 19:00:58Z jpro $
 #
 
 use strict;

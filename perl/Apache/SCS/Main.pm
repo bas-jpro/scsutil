@@ -5,24 +5,30 @@
 # v1.3 JPRO JCR JR134 16/11/2005 Added GTM download capability
 # v1.4 JPRO JCR JR195 24/11/2009 Added JSON output of SCS
 # 
-# $Id$
+# $Id: Main.pm 589 2009-12-05 16:47:35Z jpro $
 #
 
 package Apache::SCS::Main;
 
 use strict;
 use lib '/packages/scs/1.0/lib';
+#use lib 'E:/scs/scs/lib';
+
 use SCSUtil;
 use Apache::SCS::Track;
 use Apache::SCS::Constants;
 use Apache::SCS::List;
 use Apache::SCS::GTM;
+use Apache::SCS::Download;
+
 use CGI::Pretty qw( :all *table *Tr *form);
 use Apache::Constants qw(:common);
 use Time::Local;
+use POSIX qw(strftime INT_MAX);
 use JSON::XS;
 
 my $VERSION = "v1.4 JPRO 24/11/2009";
+# Download module added by DACON 01/01/2011
 
 sub handler {
 	my $r = shift;
@@ -50,7 +56,8 @@ sub handler {
 	  /^gtm$/          and do { gtm_setup($config);    last CASE; };
 	  /^gtm-download$/ and do { gtm_download($config); last CASE; };
 	  /^json$/         and do { json($config);         last CASE; };
-
+	  /^download$/     and do { download_data($config);last CASE; };
+	  
 	  show_streams($config);
   }
 

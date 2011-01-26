@@ -1,6 +1,6 @@
 # SCS Parent module for Raw / Compress SCS Modules
 #
-# $Id$
+# $Id: SCS.pm 589 2009-12-05 16:47:35Z jpro $
 #
 
 package SCS;

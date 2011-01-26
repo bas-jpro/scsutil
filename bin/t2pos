@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 # 
-# $Id$
+# $Id: t2pos 622 2010-01-04 11:59:03Z jpro $
 #
 # Arguments
 #   -s <field delimiter> -d -c <time columns> stream ...

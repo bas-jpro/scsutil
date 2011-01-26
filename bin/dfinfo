@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w # -*-Perl-*-
 # SCS version of RVS dfinfo utility
 #
-# $Id$
+# $Id: dfinfo 642 2010-02-15 16:10:37Z jpro $
 #
 # dfinfo [-h] [-f][-l][-w] [-p <path>] [<name> ...]
 #

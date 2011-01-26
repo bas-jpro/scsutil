@@ -1,6 +1,6 @@
 # SCS::Raw Module to read RAW SCS Files
 #
-# $Id: Raw.pm 737 2010-06-17 07:37:13Z jpro $
+# $Id$
 #
 
 package SCS::Raw;
@@ -463,9 +463,7 @@ sub _convert {
 		my @infs = split($raw->{delim}, $raw->{record}->{raw});
 		foreach my $v (@{ $raw->{vars_desc} }) {
 			my $val = undef;
-
-			my $raw_string = $raw->{record}->{raw};
-			my $cmd = '$val = $raw->_convert_' . $v->{type} . '($v, \@infs, $raw_string)';
+			my $cmd = '$val = $raw->_convert_' . $v->{type} . '($v, \@infs, $raw->{record}->{raw})';
 			
 			eval $cmd;
 

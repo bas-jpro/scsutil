@@ -1,22 +1,29 @@
 #!/usr/local/bin/perl -w
 #
-# $Id: raw2compress.pl 736 2010-06-16 15:33:57Z jpro $
+# $Id$
 #
 # Generate Compress/.ACO & .TPL files for SCS v4
 #
 
 use strict;
 use lib '/packages/scs/current/lib';
+#use lib 'E:/scs/scs/lib';
+
 use SCS;
 use SCS::Raw;
 use SCS::Compress;
 use XML::Simple;
-use Parallel::ForkManager;
+#use Parallel::ForkManager;
 use Data::Dumper;
 use IO::File;
 use Fcntl qw(:DEFAULT :flock);
 use POSIX qw(setsid);
 use Getopt::Std;
+
+#use lib 'E:/scs/dps/perl';
+use lib '/users/dacon/projects/dps/perl';
+use DPS::Log;
+DPS::Log::set_level(100);
 
 my $TPL_EXT = '.TPL';
 my $ACO_EXT = '.ACO';
@@ -29,7 +36,7 @@ $SIG{TERM} = sub { $FINISH = 1; };
 my %opts = ( k => 0 );
 getopts('k', \%opts);
 
-die "Usage: $0 [-k] <config file>\n" unless scalar(@ARGV) == 1;
+die "Usage: $0 [-k] <config file> <stream>\n" unless scalar(@ARGV) == 2;
 
 # Do this here before we chdir since ARGV[0] might be relative
 my $config = XMLin($ARGV[0], ForceArray => [ 'stream' ], KeyAttr => [ ] );
@@ -39,93 +46,20 @@ if (!-d $lockdir) {
 	die "$lockdir is not a directory\n";
 }
 
-# If -k given just kill existing processes and exit
-if ($opts{k}) {
-	opendir(DIR, $lockdir) or die "Can't read directory: $lockdir\n";
-	my @ls = grep { -f "$lockdir/$_" } readdir(DIR);
-	closedir(DIR);
+# Check for stream we want to convert
+my $process_stream = $ARGV[1] || undef;
 
-	foreach my $l (@ls) {
-		open(LF, "< $lockdir/$l") or die "Can't read lockfile: $l\n";
-		my $pid = <LF>;
-		next unless $pid;
-		chomp($pid);
-		close(LF);
+DPS::Log::msg(__PACKAGE__, "Ready to convert for stream=$process_stream");
 
-		print "Killing: $l\n";
-		kill 'TERM', $pid;
-	}
 
-	exit(0);
-}
-
-# Change working directory to / fork a new server and return
-chdir("/") or die "FATAL Error: Can't chdir to / : $!\n";
-
-my $pid;
- FORK: {
-	 if ($pid = fork) {
-		 # We are the parent so end. Return the child pid
-		 print "$pid\n";
-		 exit(0);
-	 } elsif (defined($pid)) {
-		 # We are the child so continue
-		 last;
-	 } elsif ($! =~ /No more process/) {
-		 # EAGAIN, supposedly recoverable fork error
-		 sleep 5;
-		 redo FORK;
-	 } else {
-		 # Weird fork error
-		 die "Can't fork: $!\n";
-	 }
-}
-
-# Start a new session to detach from tty group
-setsid or die "Can't start a new session\n";
-
-my $num_streams = scalar(@{ $config->{stream} });
-my $pm = Parallel::ForkManager->new($num_streams);
-
-# Loop through each raw stream, converting to compress format
 foreach my $stream (@{ $config->{stream} }) {
-	$pm->start and next; # fork child to handle conversion
-
-	# Lock this stream so only 1 process/stream at any one time
-	my $lockfile = $lockdir . "/" . $stream->{name};
-	my $fl = new IO::File ">> $lockfile";
-	if (!defined $fl) {
-		die "Couldn't get lock ($lockfile) for $stream->{name}\n";
-	}
-
-	$fl->autoflush(1);
-	if (flock($fl, LOCK_EX | LOCK_NB)) {
-		if (!$fl->truncate(0)) {
-			die "Couldn't truncate lock file for $stream->{name}\n";
-		}
-		print $fl $$, "\n";
-		
-		# Set name so we can see in ps
-		$0 = 'raw2compress [' . $stream->{name} . ']';
+	print  $stream->{name}."\n";
+	if($stream->{name} eq $process_stream) {
 	
 		# Convert Stream
 		convert($stream);
-
-		if (!unlink($lockfile)) {
-			die "Couldn't delete lock file ($lockfile)\n";
-		}
-	} else {
-		print "$stream->{name} locked, exiting\n";
 	}
-
-	if (!$fl->close) {
-		die "Couldn't close $stream->{name}\n";
-	}
-
-	$pm->finish;
 }
-
-$pm->wait_all_children;
 
 0;
 
@@ -133,16 +67,22 @@ sub convert {
 	my $stream = shift;
 	die "No stream\n" unless $stream;
 
+	DPS::Log::msg(__PACKAGE__, "convert :: stream=$stream->{name}");
+	
 	my $raw = SCS::Raw->new();
 	$raw->change_path($config->{rawdir}) if defined($config->{rawdir});
 	$raw->attach($stream->{raw}, $config->{datadir} . '/' . $stream->{rawdesc});
 
+	DPS::Log::msg(__PACKAGE__, "convert :: raw attached");
+	
 	create_tpl($stream, $raw);
 
 	# Create or open existing file
 	my $aco_name = $config->{compressdir} . '/' . $stream->{name} . $ACO_EXT;
 	my $ah = new IO::File;
 	if (-e $aco_name) {
+	
+
 		# Find last timestamp in aco file
 		my $scs = SCS::Compress->new();
 		$scs->change_path($config->{compressdir});
@@ -152,14 +92,21 @@ sub convert {
 		my $tstamp = $rec->{timestamp};
 		$scs->detach();
 
+		DPS::Log::msg(__PACKAGE__, "last ACO record: ".DPS::Log::date($rec->{timestamp}));
+		
 		# Go to that time in raw file
 		$rec = $raw->find_time($tstamp) if $tstamp;
 
+		DPS::Log::msg(__PACKAGE__, "matching RAW timestapm: ".DPS::Log::date($rec->{timestamp}));
+
+		
 		# If we found the time append to aco file
 		if ($rec && $rec->{timestamp} && ($rec->{timestamp} == $tstamp)) {
 			$ah->open(">> $aco_name");
 		}
 	}
+	
+	
 
 	if (!$ah->opened) {
 		$ah->open("> $aco_name");
@@ -173,8 +120,11 @@ sub convert {
 	# Convert Records - update program name every so often so ps can see progress
 	my $ps_time = 0;
 
+	DPS::Log::msg(__PACKAGE__, "Entering main watch loop");
+
 	# Convert forever or until SIGTERM
 	while (!$FINISH) {
+		DPS::Log::msg(__PACKAGE__,"watch");
 		my $rec = $raw->next_record();
 		if (!$rec) {
 			sleep(1);
