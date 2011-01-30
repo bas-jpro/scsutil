@@ -1,0 +1,17 @@
+<!-- Configuration File for raw2compress -->
+<!-- $Id$ -->
+<!-- -->
+<!-- 16/09/2009 JPRO. Initial Configuration. -->
+<!-- 01/10/2009 JPRO. Split into separate files for SCSRaw -->
+
+<config>
+	<rawdir>/data/cruise/jcr/current/scs/Raw</rawdir>
+	<compressdir>/data/cruise/jcr/current/scs/Compress</compressdir>
+	<lockdir>/data/cruise/jcr/current/scs/locks</lockdir>
+	<datadir>/packages/scs/current/data</datadir>
+	<psupdate>60</psupdate> <!-- interval (s) to update ps output -->
+
+	<!-- SCSNUM is old SCS v3 variable number for TPL files -->
+	<stream name="seaspy"      scsnum="148" rawdesc="seaspy.xml"      raw="seaspy"       delim="," />
+</config>
+

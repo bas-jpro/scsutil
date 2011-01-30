@@ -26,10 +26,10 @@ my $SECS_PER_DAY = 60 * 60 * 24;
 my $FINISH = 0;
 $SIG{TERM} = sub { $FINISH = 1; };
 
-my %opts = ( k => 0 );
-getopts('k', \%opts);
+my %opts = ( k => 0, d => 0 );
+getopts('kd', \%opts);
 
-die "Usage: $0 [-k] <config file>\n" unless scalar(@ARGV) == 1;
+die "Usage: $0 [-k] [-d] <config file>\n" unless scalar(@ARGV) == 1;
 
 # Do this here before we chdir since ARGV[0] might be relative
 my $config = XMLin($ARGV[0], ForceArray => [ 'stream' ], KeyAttr => [ ] );
@@ -59,37 +59,46 @@ if ($opts{k}) {
 	exit(0);
 }
 
-# Change working directory to / fork a new server and return
-chdir("/") or die "FATAL Error: Can't chdir to / : $!\n";
+# Don't detach if -d is given
+if (!$opts{d}) {
+	# Change working directory to / fork a new server and return
+	chdir("/") or die "FATAL Error: Can't chdir to / : $!\n";
 
-my $pid;
- FORK: {
-	 if ($pid = fork) {
-		 # We are the parent so end. Return the child pid
-		 print "$pid\n";
-		 exit(0);
-	 } elsif (defined($pid)) {
-		 # We are the child so continue
-		 last;
-	 } elsif ($! =~ /No more process/) {
-		 # EAGAIN, supposedly recoverable fork error
-		 sleep 5;
-		 redo FORK;
-	 } else {
-		 # Weird fork error
-		 die "Can't fork: $!\n";
-	 }
+	my $pid;
+  FORK: {
+	  if ($pid = fork) {
+		  # We are the parent so end. Return the child pid
+		  print "$pid\n";
+		  exit(0);
+	  } elsif (defined($pid)) {
+		  # We are the child so continue
+		  last;
+	  } elsif ($! =~ /No more process/) {
+		  # EAGAIN, supposedly recoverable fork error
+		  sleep 5;
+		  redo FORK;
+	  } else {
+		  # Weird fork error
+		  die "Can't fork: $!\n";
+	  }
+	}
+
+	# Start a new session to detach from tty group
+	setsid or die "Can't start a new session\n";
 }
 
-# Start a new session to detach from tty group
-setsid or die "Can't start a new session\n";
-
 my $num_streams = scalar(@{ $config->{stream} });
+
+# if -d can only do one stream at once
+if ($opts{d} && ($num_streams > 1)) {
+	die "Debugging option -d only allows 1 stream to be converted\n";
+}
+
 my $pm = Parallel::ForkManager->new($num_streams);
 
 # Loop through each raw stream, converting to compress format
 foreach my $stream (@{ $config->{stream} }) {
-	$pm->start and next; # fork child to handle conversion
+	!$opts{d} and $pm->start and next; # fork child to handle conversion
 
 	# Lock this stream so only 1 process/stream at any one time
 	my $lockfile = $lockdir . "/" . $stream->{name};
@@ -122,10 +131,10 @@ foreach my $stream (@{ $config->{stream} }) {
 		die "Couldn't close $stream->{name}\n";
 	}
 
-	$pm->finish;
+	!$opts{d} and $pm->finish;
 }
 
-$pm->wait_all_children;
+!$opts{d} and $pm->wait_all_children;
 
 0;
 

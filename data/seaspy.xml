@@ -4,7 +4,8 @@
 <stream>
 	<delim>,</delim>
 
-	<vars field="1"  name="-magnetic_field"  units="nT" type="string" />
+	<!-- SCS include '$ ' at start of magnetic field -->
+	<vars field="1"  name="-magnetic_field"  units="nT" spos="2" epos="10" type="string" />
 	<vars field="2"  name="-signal_strength" units=" "  type="string" />
-	<vars field="3"  name="-deoth"           units="m"  type="string" />
+	<vars field="3"  name="-depth"           units="m"  spos="0" epos="3" type="string" />
 </stream>
