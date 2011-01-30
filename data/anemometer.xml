@@ -1,5 +1,5 @@
 <!-- Anemometer RAW stream description -->
-<!-- $Id: anemometer.xml 527 2009-10-01 16:38:24Z jpro $ -->
+<!-- $Id$ -->
 
 <stream>
 	<delim>,</delim>

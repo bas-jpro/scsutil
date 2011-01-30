@@ -1,5 +1,5 @@
 <!-- EMLOG VLW RAW stream description -->
-<!-- $Id: emlog-vlw.xml 528 2009-10-01 17:15:22Z jpro $ -->
+<!-- $Id$ -->
 
 <stream name="emlog-vlw">
 	<delim>,</delim>

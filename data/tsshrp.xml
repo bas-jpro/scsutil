@@ -1,5 +1,5 @@
 <!-- TSSHRP RAW stream description -->
-<!-- $Id: tsshrp.xml 737 2010-06-17 07:37:13Z jpro $ -->
+<!-- $Id$ -->
 
 <stream>
 	<!-- If no delimiter raw2compress expects to have start / end positions in string after timestamp given by spos / epos -->

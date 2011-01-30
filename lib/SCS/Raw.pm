@@ -29,13 +29,13 @@ sub new {
 	$self->{files}        = [ ];
 	$self->{num_files}    = 0;
 	$self->{current_file} = 0;
-
+	
 	$self->{timestamp}->{raw} = undef;
 
 	return $self;
 }
 
-# Extract vars description from give XML 
+# Extract vars description from given XML 
 sub _load_desc {
 	my ($raw, $xml_desc) = @_;
 	return unless $xml_desc;
@@ -53,6 +53,9 @@ sub _load_desc {
 
 		push(@{ $raw->{vars} }, { name => $name, units => $v->{units} });
 	}
+
+	$raw->{delim} = $desc->{delim};
+	$raw->{data_prefix} = $desc->{data_prefix};
 }
 
 # XML desc is stream 
@@ -460,11 +463,18 @@ sub _convert {
 	if ($raw->{vars_desc}) {
 		$raw->{record}->{vals} = [];
 		
-		my @infs = split($raw->{delim}, $raw->{record}->{raw});
+		my $raw_string = $raw->{record}->{raw};
+		if ($raw->{data_prefix}) {
+			my $pre = $raw->{data_prefix};
+			if (substr($raw_string, 0, length($pre)) ne $pre) {
+				$raw_string = $raw->{delim} x scalar(@{ $raw->{vars_desc} });
+			}
+		}
+
+		my @infs = split($raw->{delim}, $raw_string);
 		foreach my $v (@{ $raw->{vars_desc} }) {
 			my $val = undef;
 
-			my $raw_string = $raw->{record}->{raw};
 			my $cmd = '$val = $raw->_convert_' . $v->{type} . '($v, \@infs, $raw_string)';
 			
 			eval $cmd;

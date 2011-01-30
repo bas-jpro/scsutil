@@ -1,5 +1,5 @@
 <!-- Seatex PSXN RAW stream description -->
-<!-- $Id: seatex-psxn.xml 626 2010-01-12 23:31:17Z jpro $ -->
+<!-- $Id$ -->
 
 <stream>
 	<delim>,</delim>

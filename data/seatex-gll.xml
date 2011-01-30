@@ -1,5 +1,5 @@
 <!-- Seatex GLL RAW stream description -->
-<!-- $Id: seatex-gll.xml 561 2009-11-21 11:50:47Z jpro $ -->
+<!-- $Id$ -->
 
 <stream>
 	<delim>,</delim>

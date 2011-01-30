@@ -12,10 +12,11 @@ sub new {
 	my $class = shift @_;
 
 	my $scs = bless {
-		path   => '',
-		delim  => ',',
-		name   => undef,
-		stream => undef,
+		path        => '',
+		delim       => ',',
+		name        => undef,
+		stream      => undef,
+		data_prefix => undef,
 		record => {
 			year      => undef,
 			dayfract  => undef,

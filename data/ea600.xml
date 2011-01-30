@@ -1,5 +1,5 @@
 <!-- EA600 RAW stream description -->
-<!-- $Id: ea600.xml 561 2009-11-21 11:50:47Z jpro $ -->
+<!-- $Id$ -->
 
 <stream name="ea600">
 	<delim>,</delim>
