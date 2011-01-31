@@ -508,7 +508,8 @@ sub _convert_string {
 sub _convert_prechecksum_string {
 	my ($raw, $var, $infs, $rawrec) = @_;
 
-	return (((split('\*', ($infs->[$var->{field}] || '')))[0]) || '');
+	my $val = (split('\*', ($infs->[$var->{field}] || '')))[0];
+	return (defined($val) ? $val : '');
 }
 
 # Convert GPS (D)DDMM.MMMM pos, dir (N,E,S,W) pair
