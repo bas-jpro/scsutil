@@ -1,6 +1,6 @@
 # SCS::Raw Module to read RAW SCS Files
 #
-# $Id: Raw.pm 737 2010-06-17 07:37:13Z jpro $
+# $Id$
 #
 
 package SCS::Raw;
@@ -501,7 +501,7 @@ sub _convert_string {
 		$val = $infs->[$var->{field}];
 	}
 
-	return ($val || '');
+	return (defined($val) ? $val : '');
 }
 
 # Convert a string variable just before a checksum field
