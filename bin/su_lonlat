@@ -1,0 +1,97 @@
+#!/usr/local/bin/perl -w
+# Generate Nav data for Seismic Utility (SU) package
+# JPRO 10/03/2011
+#
+# Usage: su_lonlat [-h] [-s "start time"] [-e "end time"] [-i interval] [stream]
+#        interval defaults to 10s
+#        start time / end time are in RVS format, or in something 
+#          Time::Parsedate can handle.
+#
+# Output format is CSV
+#  longitude, latitude, julian day, hour, minute, second
+#
+
+use strict;
+use Getopt::Std;
+use Time::ParseDate;
+use POSIX qw(INT_MAX);
+use lib '/packages/scs/current/lib';
+use SCS;
+use SCS::Compress;
+
+my $DEFAULT_GPS = 'seatex-gga';
+
+my %opts = ( h => 0, s => undef, e => undef, i => 10 );
+getopts('hs:e:i:', \%opts);
+
+if ((scalar(@ARGV) && (scalar(@ARGV) > 1)) || $opts{h}) {
+	die "Usage: su_lonlat [-h] [-s start time] [-e end time] [-i interval] [gps stream]\n";
+}
+
+my $stream = $ARGV[0] || $DEFAULT_GPS; 
+
+my $scs = SCS::Compress->new();
+
+my ($start_time, $end_time) = undef;
+if ($opts{s}) {
+	$start_time = parse_time($opts{s});
+
+	if (!$start_time) {
+		die "Unable to parse start time [$opts{s}]\n";
+	}
+}
+
+if ($opts{e}) {
+	$end_time = parse_time($opts{e});
+
+	if (!$end_time) {
+		die "Unable to parse end time [$opts{e}\n";
+	}
+}
+$end_time = INT_MAX unless defined($end_time);
+
+if ($opts{i} !~ /^\d\d*$/) {
+	die "Invalid interval [$opts{i}]\n";
+}
+
+$scs->attach($stream);
+my ($lon, $lat) = ($scs->get_re_var_pos('lon'), $scs->get_re_var_pos('lat'));
+if (!defined($lon) || !defined($lat)) {
+	die "Can't find longitude & latitude variables in stream [$stream]\n";
+}
+
+# Output header
+print "Longitude,Latitude,Julian Day,Hour,Minute,Second\n";
+
+$| = 1;
+my $tstamp = $start_time || 0;
+
+while ($tstamp <= $end_time) {
+	$scs->find_time($tstamp);
+	my $rec = $scs->current_record();
+
+	my ($sec, $min, $hour, $yday) = (gmtime($rec->{timestamp}))[0, 1, 2, 7];
+	$yday++;
+
+	print join(",", $rec->{vals}->[$lon], $rec->{vals}->[$lat], sprintf("%03d", $yday), map { sprintf("%02d", $_) } ($hour, $min, $sec)), "\n";
+
+	$tstamp += $opts{i};
+}
+
+0;
+
+sub parse_time {
+	my $tstr = shift;
+
+	my $tstamp = undef;
+
+	# Try RVS format first
+	eval { $tstamp = $scs->convert_rvs_time($tstr); };
+
+	if ($@) {
+		# Try Time::ParseDate
+		$tstamp = parsedate($tstr, UK => 1);
+	}
+
+	return $tstamp;
+}
