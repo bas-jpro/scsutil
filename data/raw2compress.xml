@@ -16,7 +16,7 @@
 	<stream name="ashtech"     scsnum="17"  rawdesc="ashtech.xml"     raw="ashtec"       delim="," />
 	<stream name="dopplerlog"  scsnum="77"  rawdesc="dopplerlog.xml"  raw="dopplerlog"   delim="," />
 	<stream name="ea600"       scsnum="73"  rawdesc="ea600.xml"       raw="ea600"        delim="," />
-	<stream name="em120"       scsnum="113" rawdesc="em120.xml"       raw="em120"        delim="," />
+	<stream name="em122"       scsnum="113" rawdesc="em122.xml"       raw="em122"        delim="," />
 	<stream name="emlog-vhw"   scsnum="65"  rawdesc="emlog-vhw.xml"   raw="emlog-vhw"    delim="," />
 	<stream name="emlog-vlw"   scsnum="67"  rawdesc="emlog-vlw.xml"   raw="emlog-vlw"    delim="," />
 	<stream name="furuno-gga"  scsnum="28"  rawdesc="furuno-gga.xml"  raw="furuno-gga"   delim="," />

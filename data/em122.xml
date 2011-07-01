@@ -1,0 +1,8 @@
+<!-- EM122 RAW stream description -->
+<!-- $Id$ -->
+
+<stream name="em122">
+	<delim>,</delim>
+
+	<vars field="1" name="-depth" units="m" type="string" />
+</stream>
