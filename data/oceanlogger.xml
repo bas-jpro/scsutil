@@ -23,5 +23,5 @@
 	<vars field="17" name="-sampletemp"     units="celsius"          type="string" />
 	<vars field="18" name="-flowrate"       units="l/min"            type="string" />
 	<vars field="19" name="-sstemp"         units="celsius"          type="string" />
-	<vars field="20" name="-trans"			units="0 &lt; Tt &lt; 1" type="string" />
+	<vars field="20" name="-trans"			units="0 &lt; Tr &lt; 1" type="string" />
 </stream>
