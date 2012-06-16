@@ -3,6 +3,7 @@
 <!-- -->
 <!-- 16/09/2009 JPRO. Initial Configuration. -->
 <!-- 01/10/2009 JPRO. Split into separate files for SCSRaw -->
+<!-- 03/08/2011 DDW. Added the USBL-GGA data. -->
 
 <config>
 	<rawdir>/data/cruise/jcr/current/scs/Raw</rawdir>
@@ -38,5 +39,6 @@
 	<stream name="tsshrp"      scsnum="152" rawdesc="tsshrp.xml"      raw="tsshrp"       delim="," />
 	<stream name="winch"       scsnum="115" rawdesc="winch.xml"       raw="winch"        delim="," />
 	<stream name="truewind"    scsnum="170" rawdesc="truewind.xml"    raw="truewind-dir" delim="," />
+	<stream name="usbl-gga"    scsnum="171" rawdesc="usbl-gga.xml"    raw="usbl-gga"     delim="," />
 </config>
 

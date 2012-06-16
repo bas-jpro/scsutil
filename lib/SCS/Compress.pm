@@ -156,7 +156,8 @@ sub vars {
 
 	open(TP, "$scs->{path}/$scs->{name}.TPL");
 	while (<TP>) {
-		chomp;
+		# Get rid of CRLF
+		chop; chop;
 		my ($id, $name, $units) = split ",";
 		
 		push(@vars, { name => $name, units => $units } );

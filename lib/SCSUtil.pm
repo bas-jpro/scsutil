@@ -63,7 +63,7 @@ sub attach {
 	if (!$scs->{stream}) {
 		die basename($0). ": Failed to attach $stream\n";
 	}
-
+	
 	$scs->{stream}->blocking(0);	
 }
 
