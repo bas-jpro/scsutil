@@ -1,4 +1,4 @@
-#!/packages/perl/5.8.0/bin/perl -w # -*-Perl-*-
+#!/usr/local/bin/perl -w
 #
 # Extract Lat/Lon from an SCS Stream and output in GMT friendly format
 #
@@ -15,6 +15,10 @@ use SCSUtil;
 
 # Variables for each stream
 my $STREAMS = {
+	'seatex-gga' => {
+		lat => 'seatex-gga-lat',
+		lon => 'seatex-gga-lon',
+	},
 	'Ashtec-ADU2' => {
 		lat => 'Ashtec_Lat',
 		lon => 'Ashtec_Lon',

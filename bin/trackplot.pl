@@ -1,4 +1,4 @@
-#!/packages/perl/5.8.0/bin/perl -w
+#!/usr/local/bin/perl -w
 #
 # Plot ship's track from SCS streams
 #
@@ -83,7 +83,7 @@ if ($xdegs < $ydegs) {
 
 print STDERR "Paper_mode: $paper_mode CMDEGS: $cmdeg\n";
 
-my $cmdeg = "1c";
+#my $cmdeg = "1c";
 
 # Draw Coasts
 $cmd = "$PSCOAST $bbox -Jm$cmdeg $paper_mode -B1g1 -Df -G180/120/60 -K > $filename";
