@@ -8,10 +8,14 @@ package SCS;
 use strict;
 use File::Basename;
 
+my @PARAMS = qw(cruises_dir path delim debug);
+
 sub new {
-	my $class = shift @_;
+	my ($class, $params) = @_;
 
 	my $scs = bless {
+		debug       => 0,
+		cruises_dir => undef,
 		path        => '',
 		delim       => ',',
 		name        => undef,
@@ -36,7 +40,80 @@ sub new {
 		ACCEPT  => 60,		
 	}, $class;
 
+	# Load from paramaters if supplied
+	if ($params) {
+		foreach my $p (@PARAMS) {
+			$scs->{$p} = $params->{$p} if $params->{$p};
+		}
+	}
+
+	# If cruises_dir set path to first cruise
+	if ($scs->{cruises_dir} && !$scs->{path}) {
+		$scs->next_cruise();
+	}
+
 	return $scs;
+}
+
+sub log {
+	my ($self, @msgs) = @_;
+	return unless $self->{debug};
+
+	print STDERR "$0: [" . scalar(localtime) . "] " . join(' ', @msgs) . "\n";
+}
+
+sub next_cruise {
+	my $self = shift;
+	return unless $self->{cruises_dir};
+
+	# Assume cruises are alphanumerically sortable (e.g leg nos)
+	if ($self->{path}) {
+		my $id = (reverse(split('/', $self->{path})))[0];
+		$self->log("Current cruise id $id");
+
+		my $cs = $self->_get_cruise_dirs();
+		my ($i, $num_cs) = (0, scalar(@$cs));
+		
+		while (($i < $num_cs) && ($cs->[$i] ne $id)) {
+			$i++;
+		}
+
+		if ($cs->[$i] eq $id) {
+			if ($i < $num_cs) {
+				$self->log("Next cruise is", $cs->[$i+1]);
+
+				$self->{path} = $self->{cruises_dir} . '/' . $cs->[$i+1] . '/scs/Compress';
+			} else {
+				$self->{path} = undef;
+				$self->log("No more cruises");
+			}
+		} else {
+			$self->{path} = undef;
+			$self->log("Couldn't find current cruise");
+		}
+	} else {
+		$self->log("looking for first cruise");
+		my $dir = shift @{$self->_get_cruise_dirs()};
+		$self->log("first cruise is $dir");
+
+		$self->{path} = "$dir/scs/Compress";
+	}
+
+	retur $self->{path};
+}
+
+# Cruises are sorted alphanumerically
+sub _get_cruise_dirs {
+	my $self = shift;
+	return unless $self->{cruises_dir};
+
+	opendir(my $dh, $self->{cruises_dir}) || die "Can't open directory [$self->{cruises_dir}]\n";
+	my @cs = sort grep { -d "$self->{cruises_dir}/$_/scs" } readdir($dh);
+	closedir($dh);
+
+	$self->log("Read", scalar(@cs), "dirs");
+
+	return \@cs;
 }
 
 sub change_path {

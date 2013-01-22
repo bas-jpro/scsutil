@@ -15,11 +15,11 @@ use POSIX qw(strftime ceil floor);
 my $SECS_PER_DAY = 60 * 60 * 24;
 
 sub new {
-	my $class = shift @_;
+	my ($class, $params) = @_;
 
-	my $self = $class->SUPER::new();
+	my $self = $class->SUPER::new($params);
 
-	$self->{path} = $ENV{SCSPATH} || '/data/cruise/jcr/current/scs/Compress';
+	$self->{path} = $ENV{SCSPATH} || '/data/cruise/jcr/current/scs/Compress' if !$self->{path};
 	bless $self, $class;
 
 	return $self;
