@@ -1,6 +1,6 @@
 # SCS Parent module for Raw / Compress SCS Modules
 #
-# $Id: SCS.pm 589 2009-12-05 16:47:35Z jpro $
+# $Id$
 #
 
 package SCS;
@@ -8,12 +8,13 @@ package SCS;
 use strict;
 use File::Basename;
 
-my @PARAMS = qw(cruises_dir path delim debug);
+my @PARAMS = qw(cruises_dir path delim debug multi);
 
 sub new {
 	my ($class, $params) = @_;
 
 	my $scs = bless {
+		multi       => 0,
 		debug       => 0,
 		cruises_dir => undef,
 		path        => '',
@@ -68,7 +69,7 @@ sub next_cruise {
 
 	# Assume cruises are alphanumerically sortable (e.g leg nos)
 	if ($self->{path}) {
-		my $id = (reverse(split('/', $self->{path})))[0];
+		my $id = (reverse(split('/', $self->{path})))[2];
 		$self->log("Current cruise id $id");
 
 		my $cs = $self->_get_cruise_dirs();
@@ -99,7 +100,12 @@ sub next_cruise {
 		$self->{path} = "$dir/scs/Compress";
 	}
 
-	retur $self->{path};
+	# Reattach stream
+	if ($self->{path}) {
+		$self->_reattach();
+	}
+
+	return $self->{path};
 }
 
 # Cruises are sorted alphanumerically

@@ -1,6 +1,6 @@
 # SCS::Compress Module for SCS versions of RVS utilities
 #
-# $Id: Compress.pm 588 2009-12-05 13:44:20Z jpro $
+# $Id$
 #
 
 package SCS::Compress;
@@ -396,6 +396,15 @@ sub _convert_scs {
 	$scs->{record}->{year} = $year;
 	$scs->{record}->{dayfract} = $jday + $dayfract;
 	$scs->{record}->{vals} = \@vals;
+}
+
+sub _reattach {
+	my $self = shift;
+	return unless $self->{name};
+
+	my $str = $self->{name};
+	$self->detach();
+	$self->attach($str);
 }
 
 # Round to nearest integer
