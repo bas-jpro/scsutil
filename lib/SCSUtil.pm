@@ -203,6 +203,20 @@ sub vars {
 	return $scs->{vars};
 }
 
+# Return units for a given variable
+sub get_units {
+	my ($scs, $var) = @_;
+
+	# Make sure variables have been loaded
+	$scs->vars();
+
+	foreach (@{ $scs->{vars} }) {
+		return $_->{units} if $_->{name} eq $var;
+	}
+
+	return undef;	
+}
+
 # Return var position for a variable name that matches given re
 sub get_re_var_pos {
 	my ($scs, $re) = @_;

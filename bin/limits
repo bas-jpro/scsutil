@@ -50,12 +50,11 @@ $scs->find_time($stime);
 my $rec = $scs->next_record();
 $stime = $rec->{timestamp};
 
+# Set min / max to more / less than start value to force mintimes / maxtimes
+# to be updated
 foreach (@vars) {
-	push(@min, $rec->{vals}->[$_]);
-	push(@mintimes, $rec->{timestamp});
-
-	push(@max, $rec->{vals}->[$_]);
-	push(@maxtimes, $rec->{timestamp});
+	push(@min, $rec->{vals}->[$_] + 1);
+	push(@max, $rec->{vals}->[$_] - 1);
 }
 
 my $fh = $scs->{stream};
@@ -80,12 +79,12 @@ while ($comp < 0) {
 
 	my $i = 0;
 	foreach (@vars) {
-		if ($vals[$_] < $min[$i]) {
+		if ($vals[$_] <= $min[$i]) {
 			$min[$i] = $vals[$_];
 			$mintimes[$i] = { year => $year, dayfract => $fract_time };
 		}
 			
-		if ($vals[$_] > $max[$i]) {
+		if ($vals[$_] >= $max[$i]) {
 			$max[$i] = $vals[$_];
 			$maxtimes[$i] = { year => $year, dayfract => $fract_time };
 		}
@@ -134,14 +133,11 @@ if (!$opts{v}) {
 	print " " x 28 . "Maximum" . " " x 22 . "Minimum\n";
 	print "Variable\n";
 
-	my $i = 0;
-	foreach (@vars) {
+	for (my $i=0; $i<scalar(@vars); $i++) {
 		my $pad = 18 - length($ARGV[1+$i]);
 		print $ARGV[1+$i] . " " x $pad . ": ";
 		print $max[$i] . " at " . $scs->time_str($scs->scs_to_time($maxtimes[$i]->{year}, $maxtimes[$i]->{dayfract}));
 		print "  $min[$i] at " . $scs->time_str($scs->scs_to_time($mintimes[$i]->{year}, $mintimes[$i]->{dayfract})) . "\n";
-
-		$i++;
 	}
 }
 
