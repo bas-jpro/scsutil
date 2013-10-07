@@ -184,6 +184,20 @@ sub get_instruments {
 	return ($namelen, @instruments);
 }
 
+# Return units for a given variable
+sub get_units {
+	my ($self, $var) = @_;
+
+	# Make sure variables have been loaded
+	$self->vars();
+
+	foreach (@{ $self->{vars} }) {
+		return $_->{units} if $_->{name} eq $var;
+	}
+
+	return undef;	
+}
+
 # Return var position for a variable name that matches given re
 sub get_re_var_pos {
 	my ($self, $re) = @_;
