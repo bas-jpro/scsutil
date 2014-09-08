@@ -423,7 +423,7 @@ sub _convert_rawfile_time {
 	if ($date =~ /^([0-9]{4})([0-9]{2})([0-9]{2})/) {
 		($year, $month, $day) = ($1, $2, $3);
 	} else {
-		die basename($0) .": invalid file date\n";
+		die basename($0) .": [$date] invalid file date\n";
 	}
 	
 	if ($time =~ /^([0-9]{2})([0-9]{2})([0-9]{2})/) {

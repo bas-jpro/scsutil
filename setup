@@ -3,5 +3,5 @@
 #
 setenv PATH `/nerc/bin/env_clean -env PATH -add /packages/scs/current/bin`
 
-echo "SCS has been setup"
+if (! $?NCS_SHUTUP) echo "SCS has been setup"
 

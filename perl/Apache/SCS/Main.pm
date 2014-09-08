@@ -22,7 +22,7 @@ use Apache::SCS::GTM;
 use Apache::SCS::Download;
 
 use CGI::Pretty qw( :all *table *Tr *form);
-use Apache::Constants qw(:common);
+use Apache2::Const -compile => qw(:common :methods);
 use Time::Local;
 use POSIX qw(strftime INT_MAX);
 use JSON::XS;
@@ -30,8 +30,8 @@ use JSON::XS;
 my $VERSION = "v1.4 JPRO 24/11/2009";
 # Download module added by DACON 01/01/2011
 
-sub handler {
-	my $r = shift;
+sub handler : method {
+	my ($class, $r) = @_;
 
 	my @ps = split("/", $r->path_info);
 
@@ -61,7 +61,7 @@ sub handler {
 	  show_streams($config);
   }
 
-	return OK;
+	return Apache2::Const::OK;
 }
 
 sub show_streams {
@@ -147,7 +147,7 @@ sub json {
 	my ($stream, $tstamp) = (@{$config->{path_info}})[2,3];
 
 	$config->{request}->content_type('application/json');
-	$config->{request}->send_http_header;
+	#$config->{request}->send_http_header;
 
 	# List all streams if none given
 	if (!$stream) {

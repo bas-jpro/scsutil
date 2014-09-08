@@ -32,6 +32,7 @@ sub list_vals {
 sub config_list {
 	my $config = shift;
 
+	print header(), "\n";
 	&Apache::SCS::Main::page_header;
 
 	my @streams = $config->{scs}->list_streams();
@@ -71,6 +72,7 @@ sub list_frames {
 
 	my $qstr = query_string();
 
+	print header(), "\n";
 	print "<HTML><HEAD><TITLE>JCR SCS Interface</TITLE></HEAD>";
 	
 	print start_frameset({-rows => "140,*", -border => 0});
@@ -88,6 +90,7 @@ sub list_head {
 
 	my @vars = param('vars');
 
+	print header(), "\n";
 	&Apache::SCS::Main::page_header;
 
 	print h3("List Display");

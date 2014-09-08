@@ -32,6 +32,11 @@ $scs->attach($ARGV[0]);
 my $stime = 0;
 $stime = $scs->convert_rvs_time($opts{s}) if $opts{s};
 
+my $now = time();
+if ($stime >  $now) {
+	$stime = $now;
+}
+
 my ($etime_year, $etime_dayfract) = (INT_MAX, INT_MAX);
 ($etime_year, $etime_dayfract) = $scs->_time_to_scs($scs->convert_rvs_time($opts{e})) if $opts{e};
 
@@ -45,9 +50,9 @@ my (@min, @max);
 my (@mintimes, @maxtimes);
 
 # Use first record values to seed min/max arrays
-$scs->find_time($stime);
+my $rec = $scs->find_time($stime);
 
-my $rec = $scs->next_record();
+#my $rec = $scs->next_record();
 $stime = $rec->{timestamp};
 
 # Set min / max to more / less than start value to force mintimes / maxtimes
