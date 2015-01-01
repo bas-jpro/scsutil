@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 #
-# $Id: raw2compress.pl 736 2010-06-16 15:33:57Z jpro $
+# $Id$
 #
 # Generate Compress/.ACO & .TPL files for SCS v4
 #
