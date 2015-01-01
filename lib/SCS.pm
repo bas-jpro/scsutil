@@ -56,6 +56,16 @@ sub new {
 	return $scs;
 }
 
+sub debug {
+	my ($self, $debug) = @_;
+
+	if (defined($debug)) {
+		$self->{debug} = $debug;
+	}
+
+	return $self->{debug};
+}
+
 sub log {
 	my ($self, @msgs) = @_;
 	return unless $self->{debug};

@@ -2,13 +2,15 @@
 #
 # $Id$
 #
+# Experimental code to track down memory leak
+#
 
-package SCS::Raw;
+package SCS::RawMmap;
 @ISA = qw(SCS);
 
 use strict;
 use File::Basename;
-use IO::File;
+use File::Map qw(map_file);
 use Time::Local;
 use Fcntl qw(SEEK_SET);
 use POSIX qw(strftime ceil floor);
@@ -29,6 +31,8 @@ sub new {
 	$self->{files}        = [ ];
 	$self->{num_files}    = 0;
 	$self->{current_file} = 0;
+	$self->{pos}          = 0;
+	$self->{length}       = 0;
 	
 	$self->{timestamp}->{raw} = undef;
 
@@ -66,15 +70,16 @@ sub attach {
 
 	die basename($0) . ": Failed to attach $stream - no stream\n" if $raw->{num_files} == 0;
 
-	$raw->{name} = $stream;
-	$raw->{stream} = new IO::File "$raw->{path}/$raw->{files}->[$raw->{current_file}]->{name}", O_RDONLY;
+	$raw->{name}   = $stream;
+	my $filename   = $raw->{path} . '/' . $raw->{files}->[$raw->{current_file}]->{name};
+	$raw->{length} = -s $filename;
+	map_file $raw->{stream}, $filename, '<', 0, $raw->{length};
 
 	if (!$raw->{stream}) {
 		die basename($0) . ": Failed to attach $stream - no stream\n";
 	}
 
-	$raw->{stream}->blocking(0);
-
+	$raw->{pos} = 0;
 	$raw->{record} = undef;
 
 	$raw->_load_desc($xml_desc) if $xml_desc;
@@ -88,10 +93,11 @@ sub detach {
 	}
 
 	delete $raw->{record};
-	$raw->{name} = undef;
-	$raw->{files} = [ ];
+	$raw->{name}      = undef;
+	$raw->{files}     = [ ];
 	$raw->{num_files} = $raw->{current_file} = 0;
-
+	$raw->{pos}       = $raw->{length} = 0;
+	
 	$raw->{vars}      = undef;
 	$raw->{vars_desc} = undef;
 }
@@ -119,57 +125,39 @@ sub list_streams {
 	return @streams;
 }
 
-sub next_record {
-	my $raw = shift @_;
-
-	my $rec = $raw->next_record_raw();	return undef unless $rec;
-
-	$raw->_raw_to_time();
-	
-	return $raw->{record};
-}
-
-sub next_record_raw { 
+sub next_record { 
 	my $raw = shift @_;
 
 	die basename($0) . ": Not attached\n" unless $raw->{num_files};
 
-	my $fh = $raw->{stream};
-	my $str = <$fh>;
-
-	# Move to next file if there is one
-	if (!$str) {
-		# New files always are after the current file, so can reuse current_file
-		my $next_file = $raw->{current_file} + 1;
-
-		# Save where we are in case there are no more files and we want to wait and try again later
-		my $fpos = $fh->tell();
-
-		# Check for new files
-		$raw->_reattach();
-   
-		# No more files found, so restore position
-		# Need to seek (rather than go to end) in case file has grown since we last read it
-		if ($next_file == $raw->{num_files}) {
-			$raw->_load_file($next_file - 1);
-			$fh = $raw->{stream};
-			$fh->seek($fpos, SEEK_SET);
-
-			return undef;
-		}
-		
-		$raw->_load_file($next_file);
-
-		# Read first record
-		$fh = $raw->{stream};
-		$str = <$fh>;
+	if ($raw->{pos} >= $raw->{length}) {
+		die "Hit end of file\n";
 	}
+	
+#	# Move to next file if there is one
+#	if (!$str) {
+#		# New files always are after the current file, so can reuse current_file
+#		my $next_file = $raw->{current_file} + 1;
+#
+#		# Check for new files
+#		$raw->_reattach();
+ #  
+#		# No more files found, so restore position
+#		# Need to seek (rather than go to end) in case file has grown since we last read it
+#		if ($next_file == $raw->{num_files}) {
+#			$raw->_load_file($next_file - 1);
+#			return undef;
+#		}
+#		
+#		$raw->_load_file($next_file);
+#
+#		# Read first record
+#		
+#	}
 
-	return undef unless $str;
-	chop($str);
-
-	$raw->_convert($str);
-
+	return undef unless $raw->{pos} < $raw->{length};
+	$raw->_convert();
+		
 	return $raw->{record};
 }
 
@@ -190,21 +178,21 @@ sub prev_record {
 
 		$raw->_load_file($raw->{current_file} - 1);
 		
-		$fh->seek(0, SEEK_END);
+#		$fh->seek(0, SEEK_END);
 	}
 
-	$fh->seek(-$MAX_REC_LEN, SEEK_CUR);
+#	$fh->seek(-$MAX_REC_LEN, SEEK_CUR);
 	
 	my $prev_pos;
 	my $last;
 	while (<$fh>) {
-		last if ($fh->tell() == $pos);
-		$last = $_;
-		$prev_pos = $fh->tell();
+#		last if ($fh->tell() == $pos);
+#		$last = $_;
+#		$prev_pos = $fh->tell();
 	}
 
 	# Move file pointer to end of prev record
-	$fh->seek($prev_pos, SEEK_SET);
+#	$fh->seek($prev_pos, SEEK_SET);
 
 	chop($last);
 
@@ -222,11 +210,11 @@ sub last_record {
 	$raw->_reattach();
 	$raw->_load_file($raw->{num_files} - 1);
 
-	my $fh = $raw->{stream};
-	$fh->seek(-$MAX_REC_LEN, SEEK_END);
+#	my $fh = $raw->{stream};
+#	$fh->seek(-$MAX_REC_LEN, SEEK_END);
 
 	my $last;
-	$last = $_ while (<$fh>);
+#	$last = $_ while (<$fh>);
 	
 	return undef unless $last;
 
@@ -449,50 +437,70 @@ sub _convert_raw_time {
 	return $raw->_convert_rawfile_time($date, $tstamp);
 }
 
-my $convert_dispatch = {
+my $DATE_LEN = 10;
+my $TIME_LEN = 12;
+
+my %conversions = (
 	string             => \&_convert_string,
-	prechecksum_string => \&_convert_prechecksum_string,
 	latlon             => \&_convert_latlon,
-	number             => \&_convert_number,
-};
+	prechecksum_string => \&_convert_prechecksum_string,
+	);
 
 # Convert record to timestamp / raw value
 # Updated for SCS4 Raw files which have MM/DD/YYYY,HH:MM:SS.SSS time format
+# Updated to use File::Map mmap'd files
 sub _convert {
-	my ($raw, $str) = @_;
+	my $raw = shift;
 
-	my ($date, $tstamp) = undef;
-	($date, $tstamp, $raw->{record}->{raw}) = split(",", $str, 3);
+	$raw->{record}->{timestamp} = $raw->_convert_raw_time(substr($raw->{stream}, $raw->{pos}, $DATE_LEN), 
+														  substr($raw->{stream}, $raw->{pos} + $DATE_LEN + 1, $TIME_LEN));
 
-	$raw->{record}->{timestamp} = $raw->_convert_raw_time($date, $tstamp);
+	if (!$raw->{record}->{timestamp}) {
+		$raw->{record} = undef;
+		return;
+	}	
 
+	# Jump to start of data fields
+	$raw->{pos} += $DATE_LEN + 1 + $TIME_LEN + 1;
+#	print "Converted timestamp : " . $raw->{record}->{timestamp} . "\n";
+	
 	# Extract variables from raw string if we have a description
+	my $raw_string = undef;
 	if ($raw->{vars_desc}) {
 		$raw->{record}->{vals} = [];
+
+		my $crlf = index($raw->{stream}, "\r\n", $raw->{pos});
+		if ($crlf < 0) {
+			die "Not a full record to convert\n";
+		}
+
+		$raw_string = substr($raw->{stream}, $raw->{pos}, $crlf - $raw->{pos});
+		$raw->{pos} = $crlf + 2;
 		
-		my $raw_string = $raw->{record}->{raw};
 		if ($raw->{data_prefix}) {
 			my $pre = $raw->{data_prefix};
-			if (substr($raw_string, 0, length($pre)) ne $pre) {
+			if (substr($raw->{stream}, $raw->{pos}, length($pre)) ne $pre) {
 				$raw_string = $raw->{delim} x scalar(@{ $raw->{vars_desc} });
 			}
 		}
 
+#		print "Converting data [$raw_string]\n";
 		my @infs = split($raw->{delim}, $raw_string);
+#		
 		foreach my $v (@{ $raw->{vars_desc} }) {
 			my $val = undef;
 
 			# Running like this :
 			# my $cmd = '$val = $raw->_convert_' . $v->{type} . '($v, \@infs, $raw_string)';
 			# eval $cmd
-			# Results in a memory leak, that doesn't occur with the code below - using a dispatch table
-			if (!defined($convert_dispatch->{$v->{type}}))  {
-				die "No conversion routine for data type [$v->{type}]\n";
+			# Results in a memory leak, that doesn't occur with the code below
+			if (!defined($conversions{$v->{type}}))  {
+				die "No conversions routine for data type [$v->{type}]\n";
 			}
 			
-			$val = $convert_dispatch->{$v->{type}}->($raw, $v, \@infs, $raw_string);
-
-			if ($@ || !defined($val)) {
+			$val = $conversions{$v->{type}}->($raw, $v, \@infs, $raw_string);
+			
+			if (!defined($val)) {
 				die basename($0) . ": $raw->{name}, Failed to convert variable $v->{name} of type $v->{type}: $@\n";
 			}
 
@@ -504,7 +512,7 @@ sub _convert {
 # Convert string variable
 sub _convert_string {
 	my ($raw, $var, $infs, $rawrec) = @_;
-
+	
 	my $val = undef;
 
 	# Check for start/end character string
@@ -520,7 +528,7 @@ sub _convert_string {
 # Convert a string variable just before a checksum field
 sub _convert_prechecksum_string {
 	my ($raw, $var, $infs, $rawrec) = @_;
-
+	
 	my $val = (split('\*', ($infs->[$var->{field}] || '')))[0];
 	return (defined($val) ? $val : '');
 }

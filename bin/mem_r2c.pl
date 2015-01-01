@@ -1,14 +1,16 @@
 #!/usr/local/bin/perl -w
 #
-# $Id: raw2compress.pl 736 2010-06-16 15:33:57Z jpro $
+# $Id$
 #
 # Generate Compress/.ACO & .TPL files for SCS v4
+# Test version to track down memory leak
 #
 
 use strict;
 use lib '/packages/scs/current/lib';
 use SCS;
 use SCS::Raw;
+use SCS::RawMmap;
 use SCS::Compress;
 use XML::Simple;
 use Parallel::ForkManager;
@@ -16,6 +18,8 @@ use IO::File;
 use Fcntl qw(:DEFAULT :flock);
 use POSIX qw(setsid);
 use Getopt::Std;
+use File::Slurp qw/slurp/;
+use Data::Dumper;
 
 my $TPL_EXT = '.TPL';
 my $ACO_EXT = '.ACO';
@@ -25,7 +29,7 @@ my $SECS_PER_DAY = 60 * 60 * 24;
 my $FINISH = 0;
 $SIG{TERM} = sub { $FINISH = 1; };
 
-my %opts = ( k => 0, d => 0 );
+my %opts = ( k => 0, d => 1 );
 getopts('kd', \%opts);
 
 die "Usage: $0 [-k] [-d] <config file>\n" unless scalar(@ARGV) == 1;
@@ -100,36 +104,39 @@ foreach my $stream (@{ $config->{stream} }) {
 	!$opts{d} and $pm->start and next; # fork child to handle conversion
 
 	# Lock this stream so only 1 process/stream at any one time
-	my $lockfile = $lockdir . "/" . $stream->{name};
-	my $fl = new IO::File ">> $lockfile";
-	if (!defined $fl) {
-		die "Couldn't get lock ($lockfile) for $stream->{name}\n";
-	}
+#	my $lockfile = $lockdir . "/" . $stream->{name};
+#	my $fl = new IO::File ">> $lockfile";
+#	if (!defined $fl) {
+#		die "Couldn't get lock ($lockfile) for $stream->{name}\n";
+#	}
 
-	$fl->autoflush(1);
-	if (flock($fl, LOCK_EX | LOCK_NB)) {
-		if (!$fl->truncate(0)) {
-			die "Couldn't truncate lock file for $stream->{name}\n";
-		}
-		print $fl $$, "\n";
+#	$fl->autoflush(1);
+#	if (flock($fl, LOCK_EX | LOCK_NB)) {
+#		if (!$fl->truncate(0)) {
+#			die "Couldn't truncate lock file for $stream->{name}\n";
+#		}
+#		print $fl $$, "\n";
 		
 		# Set name so we can see in ps
-		$0 = 'raw2compress [' . $stream->{name} . ']';
+		$0 = 'mem_r2c [' . $stream->{name} . ']';
 	
 		# Convert Stream
-		# Catch errors so we can clean up logfiles
-		eval { convert($stream); };
-
-		if (!unlink($lockfile)) {
-			die "Couldn't delete lock file ($lockfile)\n";
-		}
-	} else {
-		print "$stream->{name} locked, exiting\n";
+	# Catch errors so we can clean up logfiles
+	eval { convert($stream); };
+	if ($@) {
+		die "Convert failed: [$@]\n";
 	}
+	
+#		if (!unlink($lockfile)) {
+#			die "Couldn't delete lock file ($lockfile)\n";
+#		}
+#	} else {
+#		print "$stream->{name} locked, exiting\n";
+#	}
 
-	if (!$fl->close) {
-		die "Couldn't close $stream->{name}\n";
-	}
+#	if (!$fl->close) {
+#		die "Couldn't close $stream->{name}\n";
+#	}
 
 	!$opts{d} and $pm->finish;
 }
@@ -142,72 +149,90 @@ sub convert {
 	my $stream = shift;
 	die "No stream\n" unless $stream;
 
-	my $raw = SCS::Raw->new();
+	my $raw = SCS::RawMmap->new();
 	$raw->debug(1) if $opts{d};
 	$raw->change_path($config->{rawdir}) if defined($config->{rawdir});
 	$raw->attach($stream->{raw}, $config->{datadir} . '/' . $stream->{rawdesc});
 
-	create_tpl($stream, $raw);
+#	create_tpl($stream, $raw);
 
 	# Create or open existing file
-	my $aco_name = $config->{compressdir} . '/' . $stream->{name} . $ACO_EXT;
-	my $ah = new IO::File;
-	if (-e $aco_name) {
-		# Find last timestamp in aco file
-		my $scs = SCS::Compress->new();
-		$scs->change_path($config->{compressdir});
-		
-		$scs->attach($stream->{name});
-		my $rec = $scs->last_record();
-		my $tstamp = $rec->{timestamp};
-		$scs->detach();
-
-		# Go to that time in raw file
-		$rec = $raw->find_time($tstamp) if $tstamp;
-
-		# If we found the time append to aco file
-		if ($rec && $rec->{timestamp} && ($rec->{timestamp} == $tstamp)) {
-			$ah->open(">> $aco_name");
-		}
-	}
-
-	if (!$ah->opened) {
-		$ah->open("> $aco_name");
-	}
-
-	die "Cannot write to $aco_name\n" unless $ah->opened;
-
-	# Turn on Autoflush
-	$ah->autoflush(1);
+#	my $aco_name = $config->{compressdir} . '/' . $stream->{name} . $ACO_EXT;
+#	my $ah = new IO::File;
+#	if (-e $aco_name) {
+#		# Find last timestamp in aco file
+#		my $scs = SCS::Compress->new();
+#		$scs->change_path($config->{compressdir});
+#		
+#		$scs->attach($stream->{name});
+#		my $rec = $scs->last_record();
+#		my $tstamp = $rec->{timestamp};
+#		$scs->detach();
+#
+#		# Go to that time in raw file
+#		$rec = $raw->find_time($tstamp) if $tstamp;
+#
+#		# If we found the time append to aco file
+#		if ($rec && $rec->{timestamp} && ($rec->{timestamp} == $tstamp)) {
+#			$ah->open(">> $aco_name");
+#		}
+#	}
+#
+#	if (!$ah->opened) {
+#		$ah->open("> $aco_name");
+#	}
+#
+#	die "Cannot write to $aco_name\n" unless $ah->opened;
+#
+#	# Turn on Autoflush
+#	$ah->autoflush(1);
 
 	# Convert Records - update program name every so often so ps can see progress
 	my $ps_time = 0;
 
+	print "Starting: "; print_mem();
+	
+	my $cnt = 0;
 	# Convert forever or until SIGTERM
 	while (!$FINISH) {
 		my $rec = $raw->next_record();
 
+#		print "First Record: "; print_mem();
+			 
+		if (!($cnt % 100)) {
+			print "$cnt: "; print_mem();
+			#print Dumper($rec), "\n";
+		}
+		
+		$cnt++;
+		if ($cnt == 25001) {
+			exit(0);
+		}
+		
+#		print "\r" . $rec->{timestamp};
+			
 		if (!$rec) {
-			sleep(1);
+			$FINISH = 1;
+			print "\n";
 			next;
 		}
 		
 		# Detect if time goes backward and display so operator can see problems
-		if (($rec->{timestamp} > $ps_time + $config->{psupdate}) || ($rec->{timestamp} < $ps_time)) {
-			$ps_time = $rec->{timestamp};
-			$0 = 'raw2compress [' . $ps_time . ' - ' . $stream->{name} . ']';
-		}
+#		if (($rec->{timestamp} > $ps_time + $config->{psupdate}) || ($rec->{timestamp} < $ps_time)) {
+#			$ps_time = $rec->{timestamp};
+#			$0 = 'raw2compress [' . $ps_time . ' - ' . $stream->{name} . ']';
+#		}
 		
 		# Get SCS timestamp
 		my ($year, $jday, $dayfract) = tstamp_to_scs($rec->{timestamp});
 
-		print $ah join($stream->{delim}, $year, sprintf("%.6f", $jday+$dayfract), $jday, sprintf("%.8f", $dayfract),
-					   @{ $rec->{vals} }), "\r\n";
+#		print $ah join($stream->{delim}, $year, sprintf("%.6f", $jday+$dayfract), $jday, sprintf("%.8f", $dayfract),
+#					   @{ $rec->{vals} }), "\r\n";
 
-		undef $rec;
+		$rec = {};
 	}
 
-	$ah->close;
+#	$ah->close;
 	$raw->detach();
 }
 
@@ -243,4 +268,8 @@ sub tstamp_to_scs {
 
 	my @ts = gmtime($tstamp);
 	return ($ts[5] + 1900, 1 + $ts[7], ($ts[2] * 3600 + $ts[1] * 60 + $ts[0]) / $SECS_PER_DAY);
+}
+
+sub print_mem {
+    print "Memory: " . slurp("/proc/$$/statm");
 }
