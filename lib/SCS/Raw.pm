@@ -129,6 +129,8 @@ sub next_record {
 	return $raw->{record};
 }
 
+# Remove the file seek from this as it was causing a memory leak
+# Simply try loading the new set of files and carrying on from where we left off, or switching to the new file
 sub next_record_raw { 
 	my $raw = shift @_;
 
@@ -142,27 +144,20 @@ sub next_record_raw {
 		# New files always are after the current file, so can reuse current_file
 		my $next_file = $raw->{current_file} + 1;
 
-		# Save where we are in case there are no more files and we want to wait and try again later
-		my $fpos = $fh->tell();
-
 		# Check for new files
-		$raw->_reattach();
+		$raw->_find_files($raw->{name});
    
-		# No more files found, so restore position
-		# Need to seek (rather than go to end) in case file has grown since we last read it
+		# No more files found, try reading again in case the file has grown
 		if ($next_file == $raw->{num_files}) {
-			$raw->_load_file($next_file - 1);
+			$str = <$fh>;
+		} else {
+			# Load the next file
+			$raw->_load_file($next_file);
+			
+			# Read first record
 			$fh = $raw->{stream};
-			$fh->seek($fpos, SEEK_SET);
-
-			return undef;
+			$str = <$fh>;
 		}
-		
-		$raw->_load_file($next_file);
-
-		# Read first record
-		$fh = $raw->{stream};
-		$str = <$fh>;
 	}
 
 	return undef unless $str;

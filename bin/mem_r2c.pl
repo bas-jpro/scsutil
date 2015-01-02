@@ -10,7 +10,7 @@ use strict;
 use lib '/packages/scs/current/lib';
 use SCS;
 use SCS::Raw;
-use SCS::RawMmap;
+use SCS::RawMem;
 use SCS::Compress;
 use XML::Simple;
 use Parallel::ForkManager;
@@ -19,6 +19,7 @@ use Fcntl qw(:DEFAULT :flock);
 use POSIX qw(setsid);
 use Getopt::Std;
 use File::Slurp qw/slurp/;
+use Time::HiRes qw(usleep);
 use Data::Dumper;
 
 my $TPL_EXT = '.TPL';
@@ -149,7 +150,7 @@ sub convert {
 	my $stream = shift;
 	die "No stream\n" unless $stream;
 
-	my $raw = SCS::RawMmap->new();
+	my $raw = SCS::RawMem->new();
 	$raw->debug(1) if $opts{d};
 	$raw->change_path($config->{rawdir}) if defined($config->{rawdir});
 	$raw->attach($stream->{raw}, $config->{datadir} . '/' . $stream->{rawdesc});
@@ -157,26 +158,26 @@ sub convert {
 #	create_tpl($stream, $raw);
 
 	# Create or open existing file
-#	my $aco_name = $config->{compressdir} . '/' . $stream->{name} . $ACO_EXT;
-#	my $ah = new IO::File;
-#	if (-e $aco_name) {
-#		# Find last timestamp in aco file
-#		my $scs = SCS::Compress->new();
-#		$scs->change_path($config->{compressdir});
-#		
-#		$scs->attach($stream->{name});
-#		my $rec = $scs->last_record();
-#		my $tstamp = $rec->{timestamp};
-#		$scs->detach();
-#
-#		# Go to that time in raw file
-#		$rec = $raw->find_time($tstamp) if $tstamp;
-#
+	my $aco_name = $config->{compressdir} . '/' . $stream->{name} . $ACO_EXT;
+	my $ah = new IO::File;
+	if (-e $aco_name) {
+		# Find last timestamp in aco file
+		my $scs = SCS::Compress->new();
+		$scs->change_path($config->{compressdir});
+		
+		$scs->attach($stream->{name});
+		my $rec = $scs->last_record();
+		my $tstamp = $rec->{timestamp};
+		$scs->detach();
+
+		# Go to that time in raw file
+		$rec = $raw->find_time($tstamp) if $tstamp;
+
 #		# If we found the time append to aco file
 #		if ($rec && $rec->{timestamp} && ($rec->{timestamp} == $tstamp)) {
 #			$ah->open(">> $aco_name");
 #		}
-#	}
+	}
 #
 #	if (!$ah->opened) {
 #		$ah->open("> $aco_name");
@@ -205,15 +206,18 @@ sub convert {
 		}
 		
 		$cnt++;
-		if ($cnt == 25001) {
+		if ($cnt == 60001) {
+			print "At end: "; print_mem();
 			exit(0);
 		}
 		
 #		print "\r" . $rec->{timestamp};
 			
 		if (!$rec) {
-			$FINISH = 1;
-			print "\n";
+			#			$FINISH = 1;
+#			sleep(1);
+			usleep(100);
+#			print "\n";
 			next;
 		}
 		
@@ -226,8 +230,8 @@ sub convert {
 		# Get SCS timestamp
 		my ($year, $jday, $dayfract) = tstamp_to_scs($rec->{timestamp});
 
-#		print $ah join($stream->{delim}, $year, sprintf("%.6f", $jday+$dayfract), $jday, sprintf("%.8f", $dayfract),
-#					   @{ $rec->{vals} }), "\r\n";
+#		print join($stream->{delim}, $year, sprintf("%.6f", $jday+$dayfract), $jday, sprintf("%.8f", $dayfract),
+#				   @{ $rec->{vals} }), "\r\n";
 
 		$rec = {};
 	}
