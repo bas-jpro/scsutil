@@ -1,0 +1,27 @@
+<!-- Mangetometer DAT stream description -->
+<!-- $Id$ -->
+
+<stream>	
+	<delim>,</delim>
+
+	<vars field="1"  name="-date"           units="YYYY/MM/DD"      type="string" />
+	<vars field="2"  name="-time"           units="HH:MM:SS.SS"     type="string" />
+	<vars field="3"  name="-day_of_year"    units="DDD"             type="string" />
+	<vars field="4"  name="-gravity"        units="CU"              type="string" />
+	<vars field="5"  name="-spring_tension" units="CU"              type="string" />
+	<vars field="6"  name="-beam_position"  units="Volts x 750,000" type="string" />
+	<vars field="7"  name="-vcc"            units=""                type="string" />
+	<vars field="8"  name="-al"             units=""                type="string" />
+	<vars field="9"  name="-ax"             units=""                type="string" />
+	<vars field="10" name="-ve"             units=""                type="string" />
+	<vars field="11" name="-ax2"            units=""                type="string" />
+	<vars field="12" name="-xacc2"          units=""                type="string" />
+	<vars field="13" name="-lacc2"          units=""                type="string" />
+	<vars field="14" name="-cross_accel"    units="GAL"             type="string" />
+	<vars field="15" name="-long_accel"     units="GAL"             type="string" />
+	<vars field="16" name="-eotvos_corr"    units="MGAL"            type="string" />
+	<vars field="17" name="-longitude"      units="degrees"         type="string" />
+	<vars field="18" name="-latitude"       units="degrees"         type="string" />
+	<vars field="19" name="-speed"          units="knots"           type="string" />
+	<vars field="20" name="-course"			units="degrees"         type="string" />
+</stream>
