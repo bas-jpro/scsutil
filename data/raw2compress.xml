@@ -28,8 +28,8 @@
 	<stream name="furuno-zda"       scsnum="44"  rawdesc="furuno-zda.xml"       raw="furuno-zda"       delim="," />
 	<stream name="glonass"          scsnum="2"   rawdesc="glonass.xml"          raw="glonass"          delim="," />
 	<stream name="gyro"             scsnum="146" rawdesc="gyro.xml"             raw="gyro"             delim="," />
-	<stream name="magnetometer-dat" scsnum="184" rawdesc="magnetometer-dat.xml" raw="magnetometer-dat" delim="," />
-	<stream name="magnetometer-env" scsnum="205" rawdesc="magnetometer-env.xml" raw="magnetometer-env" delim="," />
+	<stream name="gravity-dat"      scsnum="184" rawdesc="gravity-dat.xml"      raw="gravity-dat"      delim="," />
+	<stream name="gravity-env"      scsnum="205" rawdesc="gravity-env.xml"      raw="gravity-env"      delim="," />
 	<stream name="netmonitor"       scsnum="158" rawdesc="netmonitor.xml"       raw="netmonitor"       delim="," />
 	<stream name="oceanlogger"      scsnum="126" rawdesc="oceanlogger.xml"      raw="oceanlogger"      delim="," />
 	<stream name="seaspy"           scsnum="148" rawdesc="seaspy.xml"           raw="seaspy"           delim="," />

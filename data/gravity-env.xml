@@ -1,0 +1,22 @@
+<!-- Gravity ENV stream description -->
+<!-- $Id$ -->
+
+<stream>	
+	<delim>,</delim>
+
+	<vars field="1"  name="-date"                 units="YYYY/MM/DD"                type="string" />
+	<vars field="2"  name="-time"                 units="HH:MM:SS.SS"               type="string" />
+	<vars field="3"  name="-day_of_year"          units="DDD"                       type="string" />
+	<vars field="4"  name="-meter"                units="Meter ID/Software version" type="string" />
+	<vars field="5"  name="-meter_pressure"       units="inch-Hg"                   type="string" />
+	<vars field="6"  name="-meter_temp"           units="celsius"                   type="string" />
+	<vars field="7"  name="-ambient_temp"         units="celsius"                   type="string" />
+	<vars field="8"  name="-beam_scale_factor"    units=""                          type="string" />
+	<vars field="9"  name="-vcc_coeff"            units=""                          type="string" />
+	<vars field="10" name="-al_coeff"             units=""                          type="string" />
+	<vars field="11" name="-ax_coeff"             units=""                          type="string" />
+	<vars field="12" name="-ve_coeff"             units=""                          type="string" />
+	<vars field="13" name="-ax2_coeff"            units=""                          type="string" />
+	<vars field="14" name="-serial_filter_length" units="seconds"                   type="string" />
+	<vars field="15" name="-qc_filter_length"     units="seconds"                   type="string" />
+</stream>
