@@ -7,6 +7,7 @@ package RVS;
 
 use strict;
 use File::Basename;
+use Data::Dumper;
 
 my @PARAMS = qw(path debug);
 
@@ -83,6 +84,77 @@ sub vars {
 	die basename($0) . ": Not attached\n" unless $self->{stream};
 
 	return $self->{vars};
+}
+
+# Return units for a given variable
+sub get_units {
+	my ($self, $var) = @_;
+
+	# Make sure variables have been loaded
+	$self->vars();
+
+	foreach (@{ $self->{vars} }) {
+		return $_->{units} if $_->{name} eq $var;
+	}
+
+	return undef;	
+}
+
+# Return var position for a variable name that matches given re
+sub get_re_var_pos {
+	my ($self, $re) = @_;
+
+	# Make sure variables have been loaded
+	$self->vars();
+
+	my $i = 0;
+	foreach (@{ $self->{vars} }) {
+		return $i if $_->{name} =~ /$re/i;
+		$i++;
+	}
+
+	return undef;
+}
+
+# Return position for a single exact variable name
+sub get_var_pos {
+	my ($self, $varname) = @_;
+
+	my @ps = $self->get_vars_pos($varname);
+	return $ps[0];
+}
+
+# Return list of positions in @vals for each variable given
+sub get_vars_pos {
+	my ($self, @varnames) = @_;
+
+	# Make sure variables have been loaded
+	$self->vars();
+
+	my %var_lookup;
+	my $i = 0;
+	foreach (@{ $self->{vars} }) {
+		$var_lookup{$_->{name}} = $i;
+		$i++;
+	}
+
+	
+	my @ps;
+	foreach (@varnames) {
+		die basename($0) . ": $self->{name} attach failure, mismatch\n" if !defined($var_lookup{$_});
+
+		push(@ps, $var_lookup{$_});
+	}
+
+	return @ps;
+}
+
+sub current_record {
+	my $self = shift @_;
+
+	die basename($0) . ": Not attached\n" unless $self->{stream};
+	
+	return $self->{record};
 }
 
 1;

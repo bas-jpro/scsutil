@@ -106,7 +106,10 @@ sub _dblConv {
 	$pos = $self->{pos} unless defined($pos);
 
 	# Empirically worked out
-	return 0;
+	my @bs = split('', substr($self->{stream}, $pos, 5));
+	my $dbl_str = chr(ord($bs[4])+1) . $bs[4] . $bs[4] . $bs[4] . $bs[3] . $bs[2] . $bs[1] . $bs[0];
+	
+	return unpack("d", $dbl_str);
 }
 
 sub attach {
@@ -145,8 +148,8 @@ sub attach {
 
 	for (my $i=0; $i<$self->{header}->{nvars}; $i++) {
 		push(@{ $self->{vars} }, {
-			name  => substr($self->{stream}, NHEAD_VNAM_OFST + $i * VNAMESIZ, VNAMESIZ),
-			units => substr($self->{stream}, NHEAD_UNAM_OFST + $i * VNAMESIZ, VNAMESIZ),
+			name  => unpack("Z*", substr($self->{stream}, NHEAD_VNAM_OFST + $i * VNAMESIZ, VNAMESIZ)),
+			units => unpack("Z*", substr($self->{stream}, NHEAD_UNAM_OFST + $i * VNAMESIZ, VNAMESIZ)),
 			 });
 	}
 
@@ -210,7 +213,7 @@ sub next_record {
 	$self->{pos} += 4;
 
 	for (my $i=0; $i<$self->{header}->{nvars}; $i++) {
-		push(@{ $self->{vals} }, $self->_dblConv());
+		push(@{ $self->{record}->{vals} }, $self->_dblConv());
 
 		# Go to next value, skipping status
 		$self->{pos} += PACSIZE;

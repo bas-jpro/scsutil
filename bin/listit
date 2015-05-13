@@ -47,6 +47,7 @@ my $scs = undef;
 if ($opts{r}) {
 	if ($opts{R}) {
 		$scs = RVS::Raw->new();
+		$scs->attach($ARGV[0]);
 	} else {
 		$scs = SCSRaw->new();
 		$scs->attach($ARGV[0], $RAW_DATA_DIR . '/' . $ARGV[0] . '.xml');
