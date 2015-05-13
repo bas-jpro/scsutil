@@ -6,6 +6,7 @@
 # listit [-s stime] [-e etime] [-i interval] [-k stat]
 #        [-b stat] [-u val] [-l val] [-v varno]
 #        [-n number] [-z secs] [-hwr] stream var [var...]
+#        [-R]
 #
 # NB. Follows man page for RVS listit, not behaviour.
 # Man page suggests -k will only list data of stat, insted RVS listit
@@ -14,6 +15,7 @@
 #
 # Option -v is accepted but ignored for compatability
 # Option -r will use SCS Raw Files
+# Option -R will use RVS files
 #
 
 use strict;
@@ -21,6 +23,8 @@ use strict;
 use lib '/packages/scs/current/lib';
 use SCSUtil;           
 use SCSRaw;
+use RVS;
+use RVS::Raw;
 use POSIX qw(strftime INT_MAX);
 use Getopt::Std;
 
@@ -28,11 +32,11 @@ use Getopt::Std;
 my $RAW_DATA_DIR = '/packages/scs/current/data';
 
 my $USAGE = "listit [-s stime][-e etime][-i interval][-k stat][-b stat]" .
-	"[-u val][-l val][-v varno][-n number][-z secs][-hwr] stream var [var ...]";
+	"[-u val][-l val][-v varno][-n number][-z secs][-hwrR] stream var [var ...]";
 
 # Parse command line
 my %opts;
-my $res = getopts('s:e:i:k:b:u:l:v:n:z:hwr', \%opts);
+my $res = getopts('s:e:i:k:b:u:l:v:n:z:hwrR', \%opts);
 
 die "usage: $USAGE\n" if !$res || (scalar(@ARGV) < 2);
 
@@ -41,11 +45,19 @@ $opts{z} = 1 unless $opts{z} && ($opts{z} =~ /^[1-9][0-9]*$/);
 
 my $scs = undef;
 if ($opts{r}) {
-	$scs = SCSRaw->new();
-	$scs->attach($ARGV[0], $RAW_DATA_DIR . '/' . $ARGV[0] . '.xml');
+	if ($opts{R}) {
+		$scs = RVS::Raw->new();
+	} else {
+		$scs = SCSRaw->new();
+		$scs->attach($ARGV[0], $RAW_DATA_DIR . '/' . $ARGV[0] . '.xml');
+	}
 } else {
-	$scs = SCSUtil->new();
-	$scs->attach($ARGV[0]);
+	if ($opts{R}) {
+		die "RVS pro_data files not yet implemented\n";
+	} else {
+		$scs = SCSUtil->new();
+		$scs->attach($ARGV[0]);
+	}
 }
 
 # Check status values and convert to integer
