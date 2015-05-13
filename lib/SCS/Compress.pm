@@ -375,7 +375,6 @@ sub _convert {
 
 	$scs->_convert_scs($str);
 	$scs->_scs_to_time();
-
 }
 
 sub _convert_scs {

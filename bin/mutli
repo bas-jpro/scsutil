@@ -70,13 +70,14 @@ foreach my $s (@{ $mfmt->{STREAM} }) {
 		push (@{ $s->{var_pos} }, $s->{scs}->get_vars_pos($v->[0]));
 	}
 
-	$s->{scs}->goto_time($stime-1);
+	$s->{scs}->find_time($stime-1);
 }
 
 my $tstamp = 0;
 
 # Now actually do loop
 while ($tstamp+$stime <= $etime) {
+	#print "$tstamp, $stime, " . ($stime+$tstamp) . ", $etime\n";
 	# Implement -t
 	my $time_print = 0;
 	$time_print = 1 if $opts{t};

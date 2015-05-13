@@ -12,6 +12,7 @@
 #
 # Also adds a -h option to print the usage string.
 # Add a -r option to use Raw files instead of Compress files
+# Add a -R option to use RVS files instead of SCS Compress files
 #
 
 use strict;
@@ -19,23 +20,33 @@ use strict;
 use lib '/packages/scs/current/lib';
 use SCSUtil;
 use SCSRaw;
+use RVS;
+use RVS::Raw;
 use POSIX qw(strftime);
 use Getopt::Std;
 
-my $USAGE = "dfinfo [-f][-l][-w][-h][-r] [-p <path>] [<name> ...]";
+my $USAGE = "dfinfo [-f][-l][-w][-h][-r][-R] [-p <path>] [<name> ...]";
 
 # Parse command line
 my %opts;
-die "usage: $USAGE\n" if (!getopts('flhwrp:', \%opts) || $opts{h});
+die "usage: $USAGE\n" if (!getopts('flhwrRp:', \%opts) || $opts{h});
 
 # Print both times by default
 $opts{f} = $opts{l} = 1 if (!$opts{f} && !$opts{l});
 
 my $scs = undef;
 if ($opts{r}) { 
-	$scs = SCSRaw->new();
+	if ($opts{R}) {
+		$scs = RVS::Raw->new();
+	} else {
+		$scs = SCSRaw->new();
+	}
 } else {
-	$scs = SCSUtil->new();
+	if ($opts{R}) {
+		die "RVS PRO files not supported yet\n";
+	} else {
+		$scs = SCSUtil->new();
+	}
 }
 
 $scs->change_path($opts{p}) if $opts{p};
@@ -96,5 +107,7 @@ sub print_times {
 				print "No data\n" if !$opts->{f};
 			}
 		}
+
+		$scs->detach();
 	}
 }
