@@ -7,8 +7,9 @@ package RVS;
 
 use strict;
 use File::Basename;
-use Data::Dumper;
+use Time::Local;
 
+my $SECS_PER_DAY = 86400;
 my @PARAMS = qw(path debug);
 
 sub new {
@@ -155,6 +156,29 @@ sub current_record {
 	die basename($0) . ": Not attached\n" unless $self->{stream};
 	
 	return $self->{record};
+}
+
+sub convert_rvs_time {
+	my ($self, $rvstime) = @_;
+
+	my ($year, $jday, $hour, $minute, $second);
+	if ($rvstime =~ /^([0-9]{2})([0-9]{3})([0-9]{2})([0-9]{2})([0-9]{0,2})$/) {
+		($year, $jday, $hour, $minute, $second) = ($1, $2, $3, $4, $5);
+		$second = 0 unless $second;
+	} else {
+		die basename($0) .": invalid time\n";
+	}
+	
+	# Y2K Compliance
+	if ($year < 69) {
+		$year += 2000;
+	} else {
+		$year += 1900;
+	}
+
+	return timegm(0, 0, 0, 1, 0, $year - 1900) + 
+		($SECS_PER_DAY * ($jday - 1)) + (3600 * $hour) + (60 * $minute) +
+			$second;
 }
 
 1;

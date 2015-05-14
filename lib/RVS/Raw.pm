@@ -101,15 +101,23 @@ sub _U32VAL {
 
 # Convert a given 5 byte position into a floating point value
 # Very small values go to 0
+my $EPSILON = 5.0e-323;
+
 sub _dblConv {
 	my ($self, $pos) = @_;
 	$pos = $self->{pos} unless defined($pos);
 
 	# Empirically worked out
 	my @bs = split('', substr($self->{stream}, $pos, 5));
-	my $dbl_str = chr(ord($bs[4])+1) . $bs[4] . $bs[4] . $bs[4] . $bs[3] . $bs[2] . $bs[1] . $bs[0];
+	my $dbl_str = $bs[4] . $bs[4] . $bs[4] . $bs[4] . $bs[3] . $bs[2] . $bs[1] . $bs[0];
 	
-	return unpack("d", $dbl_str);
+	my $d = unpack("d", $dbl_str);
+
+	if (abs($d) < $EPSILON) {
+		$d = 0;
+	}
+
+	return $d;
 }
 
 sub attach {
@@ -228,6 +236,54 @@ sub last_record {
 	die basename($0) . " Not attached\n" unless $self->{stream};
 
 	$self->{pos} = $self->{len} - $self->{header}->{recsize};
+
+	return $self->next_record();
+}
+
+# Binary search to find a given time
+sub find_time {
+	my ($self, $tstamp) = @_;
+
+	die basename($0) . ": Invalid time\n" unless $tstamp && ($tstamp >= 0);
+	die basename($0) . ": Not attached\n" unless $self->{stream};
+
+	# Check time of first record
+	$self->{pos} = NHEAD_SIZE;
+	my $t = $self->_L32VAL();
+
+	if ($tstamp < $t) {
+		return $self->next_record();
+	}
+
+	# Check time of last record
+	$self->{pos} = $self->{len} - $self->{header}->{recsize};
+	$t = $self->_L32VAL();
+
+	if ($t < $tstamp) {
+		return undef;
+	}
+
+	# Now binary search to find given start time
+	my ($low, $mid, $high) = (0, 0, $self->{header}->{nrecs} - 1);
+
+	while (($high - $low) > 1) {
+		$mid = int(($high + $low) / 2);
+
+		$self->{pos} = NHEAD_SIZE + $mid * $self->{header}->{recsize};
+		$t = $self->_L32VAL();
+
+		if ($t < $tstamp) {
+			$low = $mid;
+		} else {
+			$high = $mid;
+		}
+	}
+
+	while ($t < $tstamp) {
+		$self->{pos} += $self->{header}->{recsize};
+		
+		$t = $self->_L32VAL();
+	}
 
 	return $self->next_record();
 }
