@@ -6,6 +6,7 @@
 
 	<!-- field starts at 0 after RAW timestamp -->
 	<!-- field names beginning with - are prefixed with stream name -->
-	<vars field="1" name="-wind_dir"   units="degrees" type="string" />
-	<vars field="3" name="-wind_speed" units="knots"   type="string" />
+	<vars field="1" name="-wind_dir"      units="degrees" type="string" />
+	<vars field="3" name="-wind_speed_ms" units="m/s"     type="string" />
+	<vars field="3" name="-wind_speed"    units="knots"   type="unit_conv" scale="1.943844" />
 </stream>

@@ -449,6 +449,7 @@ my $convert_dispatch = {
 	prechecksum_string => \&_convert_prechecksum_string,
 	latlon             => \&_convert_latlon,
 	number             => \&_convert_number,
+	unit_conv          => \&_convert_unit,
 };
 
 # Convert record to timestamp / raw value
@@ -494,6 +495,20 @@ sub _convert {
 			push(@{ $raw->{record}->{vals} }, $val);
 		}
 	}
+}
+
+# Convert a variable from one unit to another
+sub _convert_unit {
+	my ($raw, $var, $infs, $rawrec) = @_;
+
+	# Get value from field
+	my $val = $raw->_convert_string($var, $infs, $rawrec);
+
+	if ($var->{scale}) {
+		$val *= $var->{scale};
+	}
+
+	return $val;
 }
 
 # Convert string variable
