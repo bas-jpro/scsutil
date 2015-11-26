@@ -516,6 +516,20 @@ sub _convert {
 	}
 }
 
+# Convert a variable from one unit to another
+sub _convert_unit_conv {
+	my ($raw, $var, $infs, $rawrec) = @_;
+
+	# Get value from field
+	my $val = $raw->_convert_string($var, $infs, $rawrec);
+
+	if ($var->{scale}) {
+		$val *= $var->{scale};
+	}
+
+	return $val;
+}
+
 # Convert string variable
 sub _convert_string {
 	my ($raw, $var, $infs) = @_;
