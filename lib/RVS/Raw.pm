@@ -110,7 +110,7 @@ sub _dblConv {
 	my @bs = split('', substr($self->{stream}, $pos, 5));
 	my $dbl_str = '000' . $bs[4] . $bs[3] . $bs[2] . $bs[1] . $bs[0];
 
-	my $d = unpack("d", $dbl_str);
+	my $d = sprintf("%0.5f", unpack("d", $dbl_str));
 
 	if (abs($d) < $EPSILON) {
 		$d = 0;
