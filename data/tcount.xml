@@ -6,7 +6,7 @@
 	<delim></delim>
 
 	<!-- tcount is address:count -->
-	<vars field="1" name="-address" units="" spos="0" epos="0" type="number" />
+	<vars field="1" name="-address" units="" spos="0" epos="0" type="string" />
 
-	<vars field="2" name="count" units="" spos="2" epos="6" type="number" />
+	<vars field="2" name="count" units="" spos="2" epos="6" type="string" />
 </stream>
