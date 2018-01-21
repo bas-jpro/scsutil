@@ -23,9 +23,10 @@ my $NODATA   = '---- No Data ----';
 my $TIMELEN  = length($NODATA);
 my $STRLEN   = 3; # 3 stream name length
 
-my $DATA_OK  = 'green';
-my $DATA_OLD = 'on red'; 
-my $TOO_OLD  = 5; # in seconds
+my $DATA_OK    = 'green';
+my $DATA_OLD   = 'on red';
+my $NULL_FIELD = 'on yellow';
+my $TOO_OLD    = 5; # in seconds
 
 my $UPD_DELAY = 2; # update delay in seconds
 
@@ -102,7 +103,13 @@ while (1) {
 			} else {
 				my $tstamp = $rec->{timestamp};
 				my $color = $DATA_OK;
-				
+
+				foreach my $v (@{ $rec->{vals} }) {
+					if (length($v) == 0) { 
+						$color = $NULL_FIELD;
+					}
+				}
+ 
 				if (time - $tstamp > $opts{a}) {
 					$color = $DATA_OLD;
 				}
