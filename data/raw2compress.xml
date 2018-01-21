@@ -43,5 +43,6 @@
 	<stream name="winch"            scsnum="115" rawdesc="winch.xml"            raw="winch"            delim="," />
 	<stream name="truewind"         scsnum="170" rawdesc="truewind.xml"         raw="truewind-dir"     delim="," />
 	<stream name="usbl-gga"         scsnum="171" rawdesc="usbl-gga.xml"         raw="usbl-gga"         delim="," />
+	<stream name="tcount"           scsnum="221" rawdesc="tcount.xml"           raw="tcount"           delim="," />
 </config>
 
